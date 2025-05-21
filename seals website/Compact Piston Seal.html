@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact Piston Seal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Blurred Background */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("../logo/bg.png");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            filter: blur(6px); /* Fixed blur issue */
+            z-index: -1;
+        }
+
+        /* Layout Flexbox */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .product-container {
+            max-width: 1500px;
+            margin: auto;
+            padding: 50px;
+            text-align: left;
+            border-radius: 10px;
+        }
+
+        /* Product Image */
+        .product-image img {
+            width: 100%;
+            border-radius: 10px;
+            max-height: 550px;
+            object-fit: cover;
+        }
+
+        /* Additional Images */
+        .additional-images {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content */
+            justify-content: center;
+            text-align: center;
+            width: auto;
+        }
+
+        .image-container img {
+            width: 100%;
+            max-width: 300px; /* Increase max width */
+            height: auto; /* Maintain aspect ratio */
+            max-height: 400px; /* Adjust as needed */
+            object-fit: contain; /* Prevents cropping */
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.1);
+        }
+        .image-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 200px; /* Adjust spacing */
+            flex-wrap: wrap;
+        }
+        .modal-body {
+            text-align: left !important;
+        }
+
+        /* Footer Styling */
+/* Footer Styling */
+.footer {
+    width: 100%;
+    background-color: #245352 !important; /* Forces the new color */
+    color: white !important;
+    padding: 20px 0;
+    margin-top: auto; /* Pushes footer to bottom */
+}
+.custom-navbar {
+    background-color: #245352 !important; /* Change to your desired color */
+}
+ /* Ensure dropdown appears directly below */
+ .search-container {
+    position: relative;
+    width: 300px;
+}
+
+/* Ensure dropdown appears below the search box */
+#suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    z-index: 1000;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    display: block;
+    color: black;
+}
+
+.suggestion-item:hover {
+    background-color: #f0f0f0;
+}
+        /* Logo size */
+        .logo-box img {
+            max-width: 95%;
+            max-height: 150px;
+        }
+        .nav-item .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        
+        .nav-item .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background-color: #00AEEF; /* Change underline color to yellow */
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        
+        .nav-item .nav-link:hover::after,
+        .nav-item .nav-link.active::after {
+            width: 100%;
+            left: 0;
+        }
+        .responsive-image {
+            max-width: 100%; /* Full width on mobile */
+            height: auto; /* Maintain aspect ratio */
+        }
+    
+        @media (min-width: 768px) {
+            .responsive-image {
+                max-width: 650px; /* Set max width for larger screens */
+            }
+        }  
+        
+</style>
+</head>
+<body>
+    
+
+        <div class="bg-image"></div>
+        <nav class="navbar navbar-expand-lg custom-navbar" >
+            <div class="container d-flex justify-content-center">
+              <a class="navbar-brand" href="..\index.html" >
+                <img src="..\logo\SAT logo.png" alt="logo\logo.png" height="70" style="margin-left: 75px;">
+            </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                    <ul class="navbar-nav gap-4"> <!-- Adjusted spacing and centered -->
+                        <li class="nav-item"><a class="nav-link  text-white px-4" href="..\index.html#about" style="font-size: 19px;">About</a></li>
+                        <li class="nav-item"><a class="nav-link  text-white px-4" href="..\index.html#clients" style="font-size: 19px;">Distributorship</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link  text-white  px-4" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" style="font-size: 19px;">Products</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="..\seals main.html"style="font-size: 19px;">Seals</a></li>
+                                <li><a class="dropdown-item" href="..\Hydraulic main.html"style="font-size: 19px;">Hydraulics</a></li>
+                                <li><a class="dropdown-item" href="..\pneumatic main.html"style="font-size: 19px;">Pneumatics</a></li>
+                                <li><a class="dropdown-item" href="..\Tractor main.html"style="font-size: 19px;">Tractor</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link  text-white px-4" href="..\Contact Us.html" style="font-size: 19px;">Contact Us</a></li>
+                        <li class="nav-item"><a class="nav-link  text-white px-4" href="..\SAT Brochure.pdf" style="font-size: 19px;">Download</a></li>
+                    </ul>
+                    <div class="search-container d-flex position-relative">
+                        <input class="form-control me-2" type="text" id="searchInput" onkeyup="showSuggestions()" placeholder="Search">
+                        <button class="btn btn-primary" onclick="performSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <div id="suggestions" class="dropdown-menu w-100"></div> <!-- Suggestions dropdown -->
+                    </div>
+                </div>
+            </div>
+        </nav>
+    
+
+    <!-- Product Section -->
+    <div class="container product-container">
+        
+        <div class="row" >
+            <div class="col-12 text-center">
+                <img src="..\720x720\Seals (720x720)\TPM\TPM_mainpic.png" alt="Compact piston seals" class="responsive-image">
+            </div>
+    
+            <div class="col-12"style="width: 950px;">
+                <h1 class="mb-4" style="font-size: 50px;"><br><b>Compact Piston Seals</b></h1>
+                <p style="font-size: 20px;">Compact Piston Seals, also known as TPM, are engineered for hydraulic and pneumatic systems where space optimization is paramount. The seals develop a tight gripping force between piston and cylinder bore to block fluid seepage, ensuring efficient and reliable operation in confined spaces. These seals are particularly well-suited for industrial machinery where space is limited and typically operate at pressures lower than those handled by Piston seals (D-seals).
+  
+                    <p style="font-size: 20px;">A compact piston seal typically comprises up to five rings : -  </p>
+                    <p style="font-size: 20px; padding-left:20px; ">1. A central elastomeric rubber ring, which is the primary sealing component.</p>
+                    <p style="font-size: 20px; padding-left:20px;">2. Two backup rings, constructed from thermoplastic material, designed to prevent extrusion</p>
+                    <p style="font-size: 20px; padding-left:20px;">3. Two guide rings, used for the piston centering function.</p>
+                    <p style="font-size: 30px; "><b>Brands: -                   </b> </p>
+                    <li style="font-size: 20px; padding-left:20px;">Hallite</li>
+                    <li style="font-size: 20px; padding-left:20px;">Kastas</li>
+                    <li style="font-size: 20px; padding-left:20px;">Technolon</li>
+                    <li style="font-size: 20px; padding-left:20px;">Polypac</li>
+            </div>
+        </div>
+        
+        <br><br>
+
+        <!-- Additional Images Section -->
+        <!--<div class="row additional-images text-center">-->
+            <div class="row image-row">
+                <div class="col-md-3 col-6 image-container">
+                    <!--<img src="..\seals\Compact Piston Seal\TPM_2.PNG"  alt="Compact Piston Seal" style="padding:40px; margin-right:70px;margin-top:60px;"-->
+                    <img src="..\720x720\Seals (720x720)\TPM\TPM_1.png"  alt="Compact Piston Seal"  style="padding-bottom: 15px;"
+                         class="clickable-image" 
+                         data-description="Compact Piston Seals are designed to provide both sealing and guiding functions within a hydraulic or pneumatic cylinder. This integrated design often eliminates the need for separate guide belts, which are typically used to support and guide the piston in cylinders with Piston Seals.">
+                    <button class="btn btn-primary enlarge-button" style="background-color: #245352;">View Details</button>
+                </div>
+                <div class="col-md-3 col-6 image-container">
+                    <!--<img src="..\seals\Compact Piston Seal\TPM_fitting.png"  alt="Compact Piston Seal fitting" style="padding: 40px;;"-->
+                    <img src="..\720x720\Seals (720x720)\TPM\TPM_fitting.png"  alt="Compact Piston Seal fitting" style="padding-bottom: 15px;"
+                         class="clickable-image" 
+                         data-description="Compact Piston Seal fitted on a cylinder piston">
+                           <button class="btn btn-primary enlarge-button" style="background-color: #245352;">View Details</button>
+                </div>
+            </div>
+            
+            <!-- Modal for Enlarged Image -->
+            <div id="imageModal" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 id="modalTitle" class="modal-title">Image Details</h5>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img id="modalImage" src="" class="img-fluid">
+                            <p id="modalDescription" class="mt-3"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+
+    </div>
+
+
+    <!-- Bootstrap Modal for Enlarged Image -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Image Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 text-center">
+                            <img id="modalImage" src="" alt="Enlarged Image" class="img-fluid" style="max-height: 400px;">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center">
+                            <p id="modalDescription" class="fs-5"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript to Handle Image Clicks -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function openModal(img) {
+                // Get modal elements
+                const modalTitle = document.getElementById("modalTitle");
+                const modalImage = document.getElementById("modalImage");
+                const modalDescription = document.getElementById("modalDescription");
+        
+                // Set modal content dynamically
+                modalTitle.textContent = img.alt; // Set the modal title using the alt text
+                modalImage.src = img.src; // Set the image source
+                modalDescription.textContent = img.dataset.description; // Set the description
+        
+                // Open the modal
+                $("#imageModal").modal("show");
+            }
+        
+            // Attach event listeners to images
+            document.querySelectorAll(".clickable-image").forEach(img => {
+                img.addEventListener("click", function () {
+                    openModal(img);
+                });
+            });
+        
+            // Attach event listeners to buttons
+            document.querySelectorAll(".enlarge-button").forEach(button => {
+                button.addEventListener("click", function () {
+                    const img = button.previousElementSibling; // Selects the image above the button
+                    openModal(img);
+                });
+            });
+        });
+        </script>
+        
+        <!-- Bootstrap (Ensure Bootstrap JS & jQuery are included) -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+               let pages = {
+            "Hydraulic Cylinder and parts": "Hydraulic website/Hydraulic Cylinder and parts.html",
+            "Hydraulic Powerpack": "Hydraulic website/Hydraulic Powerpack.html",
+            "Hydraulic Pumps": "Hydraulic website/Hydraulic pumps.html",
+            "Hydraulic Valves": "Hydraulic website/Hydraulic valves.html",
+            "Hydraulic Motors": "Hydraulic website/hydraulicmotors.html",
+            "Other Hydraulic Components": "Hydraulic website/other hydraulic components.html",
+            "Pressure Control Module": "Hydraulic website/pressure control module.html",
+            "FRL": "Pneumatic Website/FRL.html",
+            "Filter Regulator and Lubricator units": "Pneumatic Website/FRL.html",
+            "Other pneumatic components": "Pneumatic Website/other pneumatic components.html",
+            "Pneumatic connectors": "Pneumatic Website/Pneumatic connecters.html",
+            "Pneumatic control valves": "Pneumatic Website/Pneumatic control valves.html",
+            "Pneumatic Cylinders": "Pneumatic Website/Pneumatic cylinders.html",
+            "PU Pipes": "Pneumatic Website/PU Pipes.html",
+            "Cassette Seals": "seals website/Cassette Seals.html",
+            "Chevron Set": "seals website/Chevron Set.html",
+            "Circlips": "seals website/Circlips.html",
+            "Compact Piston Seal": "seals website/Compact Piston Seal.html",
+            "Concrete Mixer seal": "seals website/Concrete Mixer seal.html",
+            "Dowty seals": "seals website/Dowty seals.html",
+            "Guide belt": "seals website/Guide belt.html",
+            "Mechanical seals": "seals website/Mechanical seals.html",
+            "O-Ring": "seals website/O-Ring.html",
+            "Oilseals": "seals website/Oilseals.html",
+            "Piston Seals": "seals website/Piston Seals.html",
+            "Rod step seal": "seals website/Rod step seal.html",
+            "Trolley jack seal kit": "seals website/Trolley jack seal kit.html",
+            "U Seals": "seals website/U-Seals.html",
+            "Wiper Seals": "seals website/Wiper Seals.html",
+            "Quick release coupling": "Tractor websites/QRC.html",
+            "Tractor gear pumps": "Tractor websites/Tractor gearpumps.html",
+            "Tractor power steering cylinder sealkit": "Tractor websites/Tractor power steering cylinder sealkit.html",
+            "Rotavator seals": "Tractor websites/Rotavator seals.html",
+            "Tractor Power Steering Unit and SealKit": "Tractor websites/Tractor Power Steering Unit and SealKit.html"
+        };
+        
+        function showSuggestions() {
+            let query = document.getElementById("searchInput").value.toLowerCase().replace(/\s+/g, "");
+            let suggestionsBox = document.getElementById("suggestions");
+        
+            // Clear previous suggestions
+            suggestionsBox.innerHTML = "";
+        
+            if (query === "") {
+                suggestionsBox.style.display = "none";
+                return;
+            }
+        
+            let matches = Object.keys(pages).filter(page => 
+                page.toLowerCase().replace(/\s+/g, "").includes(query)
+            );
+        
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    let listItem = document.createElement("a");
+                    listItem.classList.add("dropdown-item", "suggestion-item");
+                    listItem.textContent = match;
+                    listItem.href = pages[match]; // Click to navigate
+        
+                    suggestionsBox.appendChild(listItem);
+                });
+        
+                suggestionsBox.style.display = "block";
+            } else {
+                suggestionsBox.style.display = "none";
+            }
+        }
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener("click", function(event) {
+            let searchBox = document.getElementById("searchInput");
+            let suggestionsBox = document.getElementById("suggestions");
+        
+            if (!searchBox.contains(event.target) && !suggestionsBox.contains(event.target)) {
+                suggestionsBox.style.display = "none";
+            }
+        });
+        
+        // Function to execute search on button click
+        function performSearch() {
+            let query = document.getElementById("searchInput").value.trim();
+            
+            if (!query) {
+                alert("Please enter a search term.");
+                return;
+            }
+
+            query = query.toLowerCase().replace(/\s+/g, "");
+            let matches = Object.keys(pages).filter(page => 
+                page.toLowerCase().replace(/\s+/g, "").includes(query)
+            );
+        
+            if (matches.length > 0) {
+                window.location.href = pages[matches[0]];
+            } else {
+                alert("No matching results found.");
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            let carousel = document.querySelector("#clientCarousel");
+            let items = carousel.querySelectorAll(".carousel-item");
+            let totalItems = items.length;
+            let currentIndex = 0;
+        
+            function slideNext() {
+                items[currentIndex].classList.remove("active");
+                currentIndex = (currentIndex + 1) % totalItems;
+                items[currentIndex].classList.add("active");
+            }
+        
+            setInterval(slideNext, 2000); // Change every 2 seconds
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const slider = document.getElementById("logoSlider");
+            setInterval(() => {
+                let firstLogo = slider.children[0]; 
+                slider.style.transition = "transform 1s ease-in-out"; // Slower transition
+                slider.style.transform = "translateX(-195px)"; // Move left by one logo
+        
+                setTimeout(() => {
+                    slider.appendChild(firstLogo); // Move first logo to end
+                    slider.style.transition = "none";
+                    slider.style.transform = "translateX(0)"; // Reset position instantly
+                }, 1000); // Match the transition duration
+            }, 2000); // Increase interval for a relaxed effect
+        });
+        
+    </script>
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-4" style="padding: 20px;" >
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="fw-bold">Contact Us</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> 3-4, Shri Ram Market, Bhimraj Bhushanwar Marg, Sanichara, Nagpur-440018</p>
+                    <p><i class="fab fa-whatsapp"></i> : 9373104833</p>
+                    <p><i class="fab fa-whatsapp"></i> : 8459721460</p>
+                    <p><i class="fas fa-envelope"></i> shardaautotraders@gmail.com</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="fw-bold">GSTIN : 27AAQPM9084L1ZQ</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+

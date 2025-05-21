@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .hero {
+            height: 80vh;
+            background-size: cover;
+            background-position: center;
+        }
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("logo/bg.png");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            filter: blur(6px); /* Fixed blur issue */
+            z-index: -1;
+        }
+        body {
+            background-color: #f8f9fa !important;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 50px;
+            padding: 2px;
+            justify-items: center;
+        }
+        .product-item {
+            position: relative;
+            width: 350px;
+            text-align: center;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 10px;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        .product-item img {
+            width: 100%;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+        .product-item:hover img {
+            transform: scale(1.1);
+        }
+        .product-name {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7) !important;
+            color: white !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-decoration: none;
+        }
+        .product-item:hover .product-name {
+            opacity: 1;
+        }
+        .footer {
+            width: 100%;
+            background-color: #245352 !important;
+            color: white !important;
+            padding: 20px 0;
+            margin-top: auto;
+        }
+        .custom-navbar {
+            background-color: #245352 !important; /* Change to your desired color */
+        }
+         /* Ensure dropdown appears directly below */
+         .search-container {
+            position: relative;
+            width: 300px;
+        }
+        
+        /* Ensure dropdown appears below the search box */
+        #suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            display: block;
+            color: black;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+               /* Logo size */
+               .logo-box img {
+                max-width: 95%;
+                max-height: 150px;
+            }
+            .nav-item .nav-link {
+                position: relative;
+                transition: color 0.3s;
+            }
+            
+            .nav-item .nav-link::after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                width: 0;
+                height: 3px;
+                background-color: #00AEEF; /* Change underline color to yellow */
+                transition: width 0.3s ease, left 0.3s ease;
+            }
+            
+            .nav-item .nav-link:hover::after,
+            .nav-item .nav-link.active::after {
+                width: 100%;
+                left: 0;
+            }
+            .responsive-image {
+                max-width: 100%; /* Full width on mobile */
+                height: auto; /* Maintain aspect ratio */
+            }
+        
+            @media (min-width: 768px) {
+                .responsive-image {
+                    max-width: 600px; /* Set max width for larger screens */
+                }
+            }
+            .search-btn {
+              width: 50px;
+              height: 39px;
+              background-color: #1a73e8; /* Bright blue */
+              color: white;
+              border: none;
+              border-radius: 7px; /* Rounded corners */
+              transition: background-color 0.3s ease;
+            }
+            
+            .search-btn:hover {
+              background-color: #1669d6; /* Slightly darker on hover */
+            }
+            
+            .search-container input.form-control {
+              border-radius: 7px 7px 7px 7px;
+              height: 39px;
+              border: 1px solid #ccc;
+            }
+            #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #FEFEFE;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+
+      #preloader video {
+        max-width: 200px;
+        max-height: 200px;
+        width: auto;
+        height: auto;
+      }
+
+      #preloader.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+        </style>
+
+        <body>
+          <div id="preloader">
+            <video autoplay muted loop playsinline>
+                <source src="logo/preloader.mp4" type="video/mp4">
+            </video>
+        </div>
+            <div class="bg-image"></div>
+            <!-- Navigation Bar -->
+            <nav class="navbar navbar-expand-lg custom-navbar" >
+              <div class="container d-flex justify-content-center">
+                <a class="navbar-brand" href="index.html" >
+                  <img src="logo\SAT logo.png" alt="logo\logo.png" height="70" style="margin-left: 75px;">
+              </a>
+                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                      <span class="navbar-toggler-icon"></span>
+                  </button>
+                  <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                      <ul class="navbar-nav gap-4"> <!-- Adjusted spacing and centered -->
+                          <li class="nav-item"><a class="nav-link  text-white px-4" href="#about" style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">About</a></li>
+                          <li class="nav-item"><a class="nav-link  text-white px-4" href="#clients" style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Distributorship</a></li>
+                          <li class="nav-item dropdown">
+                              <a class="nav-link  text-white  px-4" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Products</a>
+                              <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="seals main.html"style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Seals</a></li>
+                                  <li><a class="dropdown-item" href="Hydraulic main.html"style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Hydraulics</a></li>
+                                  <li><a class="dropdown-item" href="pneumatic main.html"style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Pneumatics</a></li>
+                                  <li><a class="dropdown-item" href="Tractor main.html"style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Tractor</a></li>
+                              </ul>
+                          </li>
+                          <li class="nav-item"><a class="nav-link  text-white px-4" href="Contact Us.html" style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Contact Us</a></li>
+                          <li class="nav-item"><a class="nav-link  text-white px-4" href="..\SAT Brochure.pdf" style="font-size: 19px;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">Download</a></li>
+                      </ul>
+                      <div class="search-container d-flex position-relative" style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">
+                          <input class="form-control me-2" type="text" id="searchInput" onkeyup="showSuggestions()" placeholder="Search">
+                          <button class="search-btn d-flex align-items-center justify-content-center">
+                            <i class="fas fa-search"></i>
+                        </button>
+                          <div id="suggestions" class="dropdown-menu w-100"></div> <!-- Suggestions dropdown -->
+                      </div>
+                  </div>
+              </div>
+          </nav>
+    
+   
+    
+
+
+    
+    <script>window.enableEventObserver=true</script>
+    <script src="https://cdn.jotfor.ms/static/prototype.forms.js?v=3.3.62587" type="text/javascript"></script>
+    <script src="https://cdn.jotfor.ms/static/jotform.forms.js?v=3.3.62587" type="text/javascript"></script>
+    <script src="https://cdn.jotfor.ms/js/vendor/maskedinput_5.0.9.min.js?v=3.3.62587" type="text/javascript"></script>
+    <script src="https://cdn.jotfor.ms/js/punycode-1.4.1.min.js?v=3.3.62587" type="text/javascript" defer></script>
+    <script src="https://cdn.jotfor.ms/s/umd/e088c29b1b8/for-form-branding-footer.js?v=3.3.62587" type="text/javascript" defer></script>
+    <script src="https://cdn.jotfor.ms/js/vendor/smoothscroll.min.js?v=3.3.62587" type="text/javascript"></script>
+    <script src="https://cdn.jotfor.ms/js/errorNavigation.js?v=3.3.62587" type="text/javascript"></script>
+    <script type="text/javascript">	JotForm.newDefaultTheme = true;
+        JotForm.extendsNewTheme = false;
+        JotForm.singleProduct = false;
+        JotForm.newPaymentUIForNewCreatedForms = true;
+        JotForm.texts = {"confirmEmail":"E-mail does not match","pleaseWait":"Please wait...","validateEmail":"You need to validate this e-mail","confirmClearForm":"Are you sure you want to clear the form","lessThan":"Your score should be less than or equal to","incompleteFields":"There are incomplete required fields. Please complete them.","required":"This field is required.","requireOne":"At least one field required.","requireEveryRow":"Every row is required.","requireEveryCell":"Every cell is required.","email":"Enter a valid e-mail address","alphabetic":"This field can only contain letters","numeric":"This field can only contain numeric values","alphanumeric":"This field can only contain letters and numbers.","cyrillic":"This field can only contain cyrillic characters","url":"This field can only contain a valid URL","currency":"This field can only contain currency values.","fillMask":"Field value must fill mask.","uploadExtensions":"You can only upload following files:","noUploadExtensions":"File has no extension file type (e.g. .txt, .png, .jpeg)","uploadFilesize":"File size cannot be bigger than:","uploadFilesizemin":"File size cannot be smaller than:","gradingScoreError":"Score total should only be less than or equal to","inputCarretErrorA":"Input should not be less than the minimum value:","inputCarretErrorB":"Input should not be greater than the maximum value:","maxDigitsError":"The maximum digits allowed is","minCharactersError":"The number of characters should not be less than the minimum value:","maxCharactersError":"The number of characters should not be more than the maximum value:","freeEmailError":"Free email accounts are not allowed","minSelectionsError":"The minimum required number of selections is ","maxSelectionsError":"The maximum number of selections allowed is ","pastDatesDisallowed":"Date must not be in the past.","dateLimited":"This date is unavailable.","dateInvalid":"This date is not valid. The date format is {format}","dateInvalidSeparate":"This date is not valid. Enter a valid {element}.","ageVerificationError":"You must be older than {minAge} years old to submit this form.","multipleFileUploads_typeError":"{file} has invalid extension. Only {extensions} are allowed.","multipleFileUploads_sizeError":"{file} is too large, maximum file size is {sizeLimit}.","multipleFileUploads_minSizeError":"{file} is too small, minimum file size is {minSizeLimit}.","multipleFileUploads_emptyError":"{file} is empty, please select files again without it.","multipleFileUploads_uploadFailed":"File upload failed, please remove it and upload the file again.","multipleFileUploads_onLeave":"The files are being uploaded, if you leave now the upload will be cancelled.","multipleFileUploads_fileLimitError":"Only {fileLimit} file uploads allowed.","dragAndDropFilesHere_infoMessage":"Drag and drop files here","chooseAFile_infoMessage":"Choose a file","maxFileSize_infoMessage":"Max. file size","generalError":"There are errors on the form. Please fix them before continuing.","generalPageError":"There are errors on this page. Please fix them before continuing.","wordLimitError":"Too many words. The limit is","wordMinLimitError":"Too few words.  The minimum is","characterLimitError":"Too many Characters.  The limit is","characterMinLimitError":"Too few characters. The minimum is","ccInvalidNumber":"Credit Card Number is invalid.","ccInvalidCVC":"CVC number is invalid.","ccInvalidExpireDate":"Expire date is invalid.","ccInvalidExpireMonth":"Expiration month is invalid.","ccInvalidExpireYear":"Expiration year is invalid.","ccMissingDetails":"Please fill up the credit card details.","ccMissingProduct":"Please select at least one product.","ccMissingDonation":"Please enter numeric values for donation amount.","disallowDecimals":"Please enter a whole number.","restrictedDomain":"This domain is not allowed","ccDonationMinLimitError":"Minimum amount is {minAmount} {currency}","requiredLegend":"All fields marked with * are required and must be filled.","geoPermissionTitle":"Permission Denied","geoPermissionDesc":"Check your browser's privacy settings.","geoNotAvailableTitle":"Position Unavailable","geoNotAvailableDesc":"Location provider not available. Please enter the address manually.","geoTimeoutTitle":"Timeout","geoTimeoutDesc":"Please check your internet connection and try again.","selectedTime":"Selected Time","formerSelectedTime":"Former Time","cancelAppointment":"Cancel Appointment","cancelSelection":"Cancel Selection","noSlotsAvailable":"No slots available","slotUnavailable":"{time} on {date} has been selected is unavailable. Please select another slot.","multipleError":"There are {count} errors on this page. Please correct them before moving on.","oneError":"There is {count} error on this page. Please correct it before moving on.","doneMessage":"Well done! All errors are fixed.","invalidTime":"Enter a valid time","doneButton":"Done","reviewSubmitText":"Review and Submit","nextButtonText":"Next","prevButtonText":"Previous","seeErrorsButton":"See Errors","notEnoughStock":"Not enough stock for the current selection","notEnoughStock_remainedItems":"Not enough stock for the current selection ({count} items left)","soldOut":"Sold Out","justSoldOut":"Just Sold Out","selectionSoldOut":"Selection Sold Out","subProductItemsLeft":"({count} items left)","startButtonText":"START","submitButtonText":"Submit","submissionLimit":"Sorry! Only one entry is allowed. <br> Multiple submissions are disabled for this form.","reviewBackText":"Back to Form","seeAllText":"See All","progressMiddleText":"of","fieldError":"field has an error.","error":"Error"};
+        JotForm.newPaymentUI = true;
+        JotForm.originalLanguage = "en";
+        JotForm.isFormViewTrackingAllowed = true;
+        JotForm.replaceTagTest = true;
+        JotForm.uploadServerURL = "https://upload.jotform.com/upload";
+        JotForm.clearFieldOnHide="disable";
+        JotForm.submitError="jumpToFirstError";
+
+    
+          try{
+            function isTrackingProhibited() {
+          try {
+            var isEUDomain = /(?:eu.jotform)|(?:jotformeu.com)/.test(window.location.host);
+            var isHipaaDomain = /(?:hipaa.jotform)/.test(window.location.host);
+            var isProhibitedParameterExists = /(?:wfTaskID|PCI_preSubmitRequest|wfTaskType)/.test(window.location.search);
+            var isEditMode = JotForm.isEditMode();
+            var isTrackingProhibited = isEUDomain || isHipaaDomain || isProhibitedParameterExists || isEditMode;
+            return isTrackingProhibited;
+          } catch (e) {
+            console.log(e);
+            return true;
+          }
+        }
+            if (!isTrackingProhibited()) {
+              var sesApiUrl = /jotform.pro/.test(window.location.host) ? '/API' : 'https://api.jotform.com';
+              function sendOpenId(uuid, eventType) {
+                navigator.sendBeacon(sesApiUrl + '/form/' + 251222159356454 + '/event/' + uuid + '/' + eventType, {});
+              }
+              var formOpenId = '';
+              if (window.crypto) {
+                formOpenId = window.crypto.getRandomValues(new BigUint64Array(1)).toString();
+              } else {
+                formOpenId = (Math.random() * 16).toString(16).slice(2);
+              }
+              sendOpenId = sendOpenId.bind(this, formOpenId);
+              function sendOpenIdOnSubmit() {
+                var currentForm = $('251222159356454');
+                currentForm.addEventListener('submit', function() { sendOpenId('clientSubmitClick_V5'); });
+                var openIdInput = currentForm.querySelector('[name="formOpenId_V5"]');
+                if (!openIdInput) {
+                  openIdInput = document.createElement('input');
+                  openIdInput.setAttribute('type', 'hidden');
+                  openIdInput.setAttribute('name', 'formOpenId_V5');
+                  currentForm.appendChild(openIdInput);
+                }
+                openIdInput.value = formOpenId;
+              }
+              sendOpenId('clientFormView_V5');
+              if (document.readyState == 'complete' || (this.jsForm && (document.readyState === undefined || document.readyState === 'interactive'))) {
+                  sendOpenIdOnSubmit();
+              } else {
+                  document.ready(sendOpenIdOnSubmit);
+              }
+            }
+          } catch(openIdBlockError) {
+            console.log(openIdBlockError);
+          }
+        
+        JotForm.init(function(){
+        /*INIT-START*/
+        JotForm.setPhoneMaskingValidator( 'input_4_full', ' \u002891\u0029\u002d\u0023\u0023\u0023\u0023\u0023\u0023\u0023\u0023\u0023\u0023' );
+        if (window.JotForm && JotForm.accessible) $('input_20').setAttribute('tabindex',0);
+        if (window.JotForm && JotForm.accessible) $('input_21').setAttribute('tabindex',0);
+              JotForm.alterTexts({"startButtonText":"START"});
+          /*INIT-END*/
+          });
+    
+       setTimeout(function() {
+    JotForm.paymentExtrasOnTheFly([null,{"name":"heading","qid":"1","text":"Contact Us","type":"control_head"},null,{"name":"fullName","qid":"3","text":"Full Name","type":"control_fullname"},{"name":"contactNumber","qid":"4","text":"Contact Number","type":"control_phone"},{"name":"emailAddress","qid":"5","subLabel":"example@example.com","text":"Email Address","type":"control_email"},null,null,null,null,null,null,null,null,null,{"name":"submit","qid":"15","text":"Submit","type":"control_button"},null,null,null,null,{"description":"","mde":"No","name":"letUs","qid":"20","subLabel":"","text":"Let us know how we can help you!","type":"control_textarea","wysiwyg":"Disable"},{"description":"","mde":"No","name":"writeUs","qid":"21","subLabel":"","text":"Write Us a Review!","type":"control_textarea","wysiwyg":"Disable"}]);}, 20); 
+    </script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.jotfor.ms/stylebuilder/static/form-common.css?v=421d4e0
+    "/>
+    <style type="text/css">@media print{*{-webkit-print-color-adjust: exact !important;color-adjust: exact !important;}.form-section{display:inline!important}.form-pagebreak{display:none!important}.form-section-closed{height:auto!important}.page-section{position:initial!important}}</style>
+    <link type="text/css" rel="stylesheet" href="https://cdn.jotfor.ms/themes/CSS/5e6b428acc8c4e222d1beb91.css?v=3.3.62587"/>
+    <link type="text/css" rel="stylesheet" href="https://cdn.jotfor.ms/css/styles/payment/payment_styles.css?3.3.62587" />
+    <link type="text/css" rel="stylesheet" href="https://cdn.jotfor.ms/css/styles/payment/payment_feature.css?3.3.62587" />
+    <style type="text/css" id="form-designer-style">
+        /* Injected CSS Code */
+    /* Begining of advanced designer */
+    /*PREFERENCES STYLE*/
+    /*  1 - Preferences style */
+    /*  1 - FONT FAMILY */
+    .form-all {
+     
+    }
+    /* 2 - FORM WIDTH */
+    .form-all {
+      max-width: 1052px;
+    }
+    /* 5 - FONT SIZE */
+    .form-all {
+      font-size: 16px;
+    }
+    /* 5 - input bg color */
+    .form-textbox,
+    .form-textarea,
+    .form-radio-other-input,
+    .form-checkbox-other-input,
+    .form-captcha input,
+    .form-spinner input {
+      background-color: #ffffff;
+    }
+    /* 10 - LINE SPACING */
+    .form-line {
+      margin-top: 12px;
+      margin-bottom: 12px;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    .supernova .form-all,
+    .form-all {
+      background-color: #ffffff;
+    }
+    .supernova {
+      background-color: #4c72fb;
+    }
+    .supernova body {
+      background-color: transparent;
+    }
+    .form-all,
+    .form-label-top,
+    .form-label-left,
+    .form-label-right,
+    .form-html,
+    .form-checkbox-item label,
+    .form-radio-item label,
+    span.FITB .qb-checkbox-label,
+    span.FITB .qb-radiobox-label,
+    span.FITB .form-radio label,
+    span.FITB .form-checkbox label,
+    [data-blotid][data-type=checkbox] [data-labelid],
+    [data-blotid][data-type=radiobox] [data-labelid],
+    span.FITB-inptCont[data-type=checkbox] label,
+    span.FITB-inptCont[data-type=radiobox] label,
+    .form-sub-label {
+      color: #000000;
+    }
+    .form-all {
+      margin: 72px auto;
+    }
+    .form-all:before {
+      content: none;
+    }
+    /*PREFERENCES STYLE*/
+    /* 17 - INPUT WIDTHS */
+    /*  20 - FORM PADDING */
+    ul.form-section {
+      padding: 0px 38px;
+    }
+    /* Heights */
+    /* 11 - LINE PADDING */
+    /* LABEL STYLE */
+    /* 12 - ROUNDED INPUTS */
+    .form-textbox:not(#productSearch-input),
+    .form-radio-other-input,
+    .form-checkbox-other-input,
+    .form-captcha input,
+    .form-spinner input,
+    .form-pagebreak-back,
+    .form-pagebreak-next,
+    .qq-upload-button,
+    .signature-wrapper,
+    .form-error-message {
+      border-radius: 0px;
+    }
+    .form-textarea {
+      border-radius: 0px;
+    }
+    .supernova .form-all,
+    .form-all {
+      border-radius: 20px;
+    }
+    .form-section:first-child {
+      border-radius: 20px 20px 0 0;
+    }
+    .form-section:last-child {
+      border-radius: 0 0 20px 20px;
+    }
+    .form-radio-item,
+    .form-checkbox-item {
+      padding-bottom: 0px;
+    }
+    .form-radio-item:last-child,
+    .form-checkbox-item:last-child {
+      padding-bottom: 0;
+    }
+    .form-single-column .form-checkbox-item,
+    .form-single-column .form-radio-item {
+      width: 100%;
+    }
+    .form-checkbox-item .editor-container div,
+    .form-radio-item .editor-container div {
+      position: relative;
+    }
+    .form-checkbox-item .editor-container div:before,
+    .form-radio-item .editor-container div:before {
+      display: inline-block;
+      vertical-align: middle;
+      left: 0;
+      width: 20px;
+      height: 20px;
+    }
+    .form-radio-item:not(#foo),
+    .form-checkbox-item:not(#foo) {
+      position: relative;
+    }
+    .form-radio-item:not(#foo) .form-radio + span:before,
+    .form-checkbox-item:not(#foo) .form-radio + span:before,
+    .form-radio-item:not(#foo) .form-radio + span:after,
+    .form-checkbox-item:not(#foo) .form-radio + span:after,
+    .form-radio-item:not(#foo) .form-radio:checked + span div:after,
+    .form-checkbox-item:not(#foo) .form-radio:checked + span div:after,
+    .form-radio-item:not(#foo) .form-checkbox + span:before,
+    .form-checkbox-item:not(#foo) .form-checkbox + span:before,
+    .form-radio-item:not(#foo) .form-checkbox + span:after,
+    .form-checkbox-item:not(#foo) .form-checkbox + span:after,
+    .form-radio-item:not(#foo) .form-checkbox:checked + span div:after,
+    .form-checkbox-item:not(#foo) .form-checkbox:checked + span div:after {
+      display: none;
+    }
+    .form-radio-item:not(#foo) .form-radio + label:after,
+    .form-checkbox-item:not(#foo) .form-radio + label:after,
+    .form-radio-item:not(#foo) .form-radio + span:after,
+    .form-checkbox-item:not(#foo) .form-radio + span:after,
+    .form-radio-item:not(#foo) .form-checkbox + label:after,
+    .form-checkbox-item:not(#foo) .form-checkbox + label:after,
+    .form-radio-item:not(#foo) .form-checkbox + span:after,
+    .form-checkbox-item:not(#foo) .form-checkbox + span:after {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .form-radio-item:not(#foo) label:after,
+    .form-checkbox-item:not(#foo) label:after {
+      background-color: #ffffff;
+    }
+    .form-radio-item:not(#foo) .form-checkbox + label,
+    .form-checkbox-item:not(#foo) .form-checkbox + label,
+    .form-radio-item:not(#foo) .form-checkbox + span,
+    .form-checkbox-item:not(#foo) .form-checkbox + span,
+    .form-radio-item:not(#foo) .form-radio + label,
+    .form-checkbox-item:not(#foo) .form-radio + label,
+    .form-radio-item:not(#foo) .form-radio + span,
+    .form-checkbox-item:not(#foo) .form-radio + span {
+      padding-left: 50px;
+    }
+    .form-radio-item:not(#foo) label,
+    .form-checkbox-item:not(#foo) label {
+      float: left;
+    }
+    .form-radio-item:not(#foo) label:before,
+    .form-checkbox-item:not(#foo) label:before,
+    .form-radio-item:not(#foo) .editor-container div:before,
+    .form-checkbox-item:not(#foo) .editor-container div:before {
+      content: '';
+      position: absolute;
+      display: inline-block;
+      vertical-align: baseline;
+      border-radius: 12px;
+      top: 0;
+      left: 4px;
+      width: 36px;
+      height: 22px;
+      cursor: pointer;
+      background: #C3CAD8;
+    }
+    .form-radio-item:not(#foo) label:after,
+    .form-checkbox-item:not(#foo) label:after,
+    .form-radio-item:not(#foo) .editor-container div:after,
+    .form-checkbox-item:not(#foo) .editor-container div:after {
+      content: '';
+      position: absolute;
+      display: inline-block;
+      top: 3px;
+      left: 8px;
+      width: 15px;
+      height: 15px;
+      border-radius: 12px;
+      -webkit-transition-property: all;
+      -moz-transition-property: all;
+      -ms-transition-property: all;
+      -o-transition-property: all;
+      transition-property: all;
+      -webkit-transition-duration: 0.2s;
+      -moz-transition-duration: 0.2s;
+      -ms-transition-duration: 0.2s;
+      -o-transition-duration: 0.2s;
+      transition-duration: 0.2s;
+      -webkit-transition-timing-function: ease;
+      -moz-transition-timing-function: ease;
+      -ms-transition-timing-function: ease;
+      -o-transition-timing-function: ease;
+      transition-timing-function: ease;
+    }
+    .form-radio-item:not(#foo) input:checked + label:before,
+    .form-checkbox-item:not(#foo) input:checked + label:before {
+      background: #487bff;
+    }
+    .form-radio-item:not(#foo) input:checked + label:after,
+    .form-checkbox-item:not(#foo) input:checked + label:after {
+      left: 20px;
+    }
+    .submit-button {
+      font-size: 16px;
+      font-weight: normal;
+      font-family: inherit;
+      border: none;
+      border-width: 0px;
+      border-style: solid;
+      border-color: #3d9ae2;
+    }
+    .submit-button {
+      min-width: 180px;
+    }
+    li[data-type="control_button"] .form-submit-button {
+      color: #e8f6fb;
+      background-color: #4c72fb;
+      background-image: none;
+      box-shadow: none;
+      text-shadow: none;
+    }
+    li[data-type="control_button"] .form-submit-button:hover {
+      background-color: #0534dc;
+    }
+    li[data-type="control_button"] button.jf-form-buttons.form-sacl-button,
+    li[data-type="control_button"] button.jf-form-buttons.form-submit-print {
+      color: #4c72fb;
+      border-color: #4c72fb;
+      background-image: none;
+      background-color: #fff;
+    }
+    li[data-type="control_button"] button.jf-form-buttons.form-sacl-button:hover,
+    li[data-type="control_button"] button.jf-form-buttons.form-submit-print:hover {
+      background-color: #0534dc;
+      color: #fff;
+    }
+    li[data-type="control_button"] button.jf-form-buttons.form-pagebreak-back {
+      background-image: none;
+      background-color: #0534dc;
+      box-shadow: none;
+      text-shadow: none;
+    }
+    li[data-type="control_button"] button.jf-form-buttons.form-pagebreak-back:hover {
+      background-color: #0428aa;
+      color: #fff;
+    }
+    .form-submit-button,
+    .form-submit-reset,
+    .form-submit-print {
+      border-radius: 6px;
+    }
+    .form-all .form-pagebreak-back,
+    .form-all .form-pagebreak-next {
+     
+      font-size: 16px;
+      font-weight: normal;
+    }
+    .form-all .form-pagebreak-back,
+    .form-all .form-pagebreak-next {
+      min-width: 128px;
+    }
+    li[data-type="control_image"] div {
+      text-align: left;
+    }
+    li[data-type="control_image"] img {
+      border: none;
+      border-width: 0px !important;
+      border-style: solid !important;
+      border-color: false !important;
+    }
+    .supernova {
+      height: 100%;
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+      background-position: center top;
+      background-repeat: repeat;
+    }
+    .supernova {
+      background-image: none;
+    }
+    #stage {
+      background-image: none;
+    }
+    /* | */
+    .form-all {
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+      background-position: center top;
+      background-repeat: repeat;
+    }
+    .form-header-group {
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+      background-position: center top;
+    }
+    .header-large h1.form-header {
+      font-size: 2em;
+    }
+    .header-large h2.form-header {
+      font-size: 1.5em;
+    }
+    .header-large h3.form-header {
+      font-size: 1.17em;
+    }
+    .header-large h1 + .form-subHeader {
+      font-size: 1em;
+    }
+    .header-large h2 + .form-subHeader {
+      font-size: .875em;
+    }
+    .header-large h3 + .form-subHeader {
+      font-size: .75em;
+    }
+    .header-default h1.form-header {
+      font-size: 2em;
+    }
+    .header-default h2.form-header {
+      font-size: 1.5em;
+    }
+    .header-default h3.form-header {
+      font-size: 1.17em;
+    }
+    .header-default h1 + .form-subHeader {
+      font-size: 1em;
+    }
+    .header-default h2 + .form-subHeader {
+      font-size: .875em;
+    }
+    .header-default h3 + .form-subHeader {
+      font-size: .75em;
+    }
+    .header-small h1.form-header {
+      font-size: 2em;
+    }
+    .header-small h2.form-header {
+      font-size: 1.5em;
+    }
+    .header-small h3.form-header {
+      font-size: 1.17em;
+    }
+    .header-small h1 + .form-subHeader {
+      font-size: 1em;
+    }
+    .header-small h2 + .form-subHeader {
+      font-size: .875em;
+    }
+    .header-small h3 + .form-subHeader {
+      font-size: .75em;
+    }
+    .form-header-group {
+      text-align: left;
+    }
+    .form-header-group {
+     
+    }
+    div.form-header-group.header-large,
+    div.form-header-group.hasImage {
+      margin: 0px -38px;
+    }
+    div.form-header-group.header-large,
+    div.form-header-group.hasImage {
+      padding: 40px 52px;
+    }
+    .form-header-group .form-header,
+    .form-header-group .form-subHeader {
+      color: -1;
+    }
+    .form-line-error {
+      -webkit-transition-property: none;
+      -moz-transition-property: none;
+      -ms-transition-property: none;
+      -o-transition-property: none;
+      transition-property: none;
+      -webkit-transition-duration: 0.3s;
+      -moz-transition-duration: 0.3s;
+      -ms-transition-duration: 0.3s;
+      -o-transition-duration: 0.3s;
+      transition-duration: 0.3s;
+      -webkit-transition-timing-function: ease;
+      -moz-transition-timing-function: ease;
+      -ms-transition-timing-function: ease;
+      -o-transition-timing-function: ease;
+      transition-timing-function: ease;
+      background-color: #fff4f4;
+    }
+    .form-line-error .form-error-message {
+      background-color: #f23a3c;
+      clear: both;
+      float: none;
+    }
+    .form-line-error .form-error-message .form-error-arrow {
+      border-bottom-color: #f23a3c;
+    }
+    .form-line-error input:not(#coupon-input),
+    .form-line-error textarea,
+    .form-line-error .form-validation-error {
+      border: 1px solid #f23a3c;
+      box-shadow: 0 0 3px #f23a3c;
+    }
+    .form-line-error {
+      -webkit-transition-property: none;
+      -moz-transition-property: none;
+      -ms-transition-property: none;
+      -o-transition-property: none;
+      transition-property: none;
+      -webkit-transition-duration: 0.3s;
+      -moz-transition-duration: 0.3s;
+      -ms-transition-duration: 0.3s;
+      -o-transition-duration: 0.3s;
+      transition-duration: 0.3s;
+      -webkit-transition-timing-function: ease;
+      -moz-transition-timing-function: ease;
+      -ms-transition-timing-function: ease;
+      -o-transition-timing-function: ease;
+      transition-timing-function: ease;
+      background-color: #fff4f4;
+    }
+    .form-line-active {
+      background-color: #f1f5ff;
+    }
+    /* 29 - FORM COLUMNS */
+    
+    /*__INSPECT_SEPERATOR__*/
+    .form-label.form-label-auto {
+            
+          display: block;
+          float: none;
+          text-align: left;
+          width: 100%;
+        
+          }
+        /* Injected CSS Code */
+    </style>
+    <div style="display: flex; flex-wrap: wrap; width: 100%; box-sizing: border-box;">
+  
+        <!-- Form Container (70%) -->
+        <div style="width: 70%; min-width: 300px; padding: 10px; box-sizing: border-box;">
+      
+    <form class="jotform-form" onsubmit="return typeof testSubmitFunction !== 'undefined' && testSubmitFunction();" action="https://submit.jotform.com/submit/251222159356454" method="post" name="form_251222159356454" id="251222159356454" accept-charset="utf-8" autocomplete="on"><input type="hidden" name="formID" value="251222159356454" /><input type="hidden" id="JWTContainer" value="" /><input type="hidden" id="cardinalOrderNumber" value="" /><input type="hidden" id="jsExecutionTracker" name="jsExecutionTracker" value="build-date-1746266628593" /><input type="hidden" id="submitSource" name="submitSource" value="unknown" /><input type="hidden" id="buildDate" name="buildDate" value="1746266628593" /><input type="hidden" name="uploadServerUrl" value="https://upload.jotform.com/upload" /><input type="hidden" name="eventObserver" value="1" />
+      <div role="main" class="form-all">
+        <ul class="form-section page-section" role="presentation">
+          <li id="cid_1" class="form-input-wide" data-type="control_head">
+            <div class="form-header-group  header-large" style="background-color: #245352; margin: 0 -38px; padding: 40px 0; border-radius: 30px 30px 0 0; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);">
+              <div class="header-text httac htvam" style="width: 100%;">
+                <h1 id="header_1" class="form-header" data-component="header" style="font-size: 42px; color: white; text-align: center; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);">Contact Us</h1>
+                <div id="subHeader_1" class="form-subHeader" style="color: white; text-align: center; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);">Let us know how we can help you!</div>
+              </div>
+            </div>
+          </li>
+          <li class="form-line jf-required" data-type="control_fullname" id="id_3"><label class="form-label form-label-top form-label-auto" id="label_3" for="first_3" aria-hidden="false"> Full Name<span class="form-required">*</span> </label>
+            <div id="cid_3" class="form-input-wide jf-required" data-layout="full">
+              <div data-wrapper-react="true"><span class="form-sub-label-container" style="vertical-align:top" data-input-type="first"><input type="text" id="first_3" name="q3_fullName[first]" class="form-textbox validate[required]" data-defaultvalue="" autoComplete="section-input_3 given-name" size="10" data-component="first" aria-labelledby="label_3 sublabel_3_first" required="" value="" /><label class="form-sub-label" for="first_3" id="sublabel_3_first" style="min-height:13px">First Name</label></span><span class="form-sub-label-container" style="vertical-align:top" data-input-type="last"><input type="text" id="last_3" name="q3_fullName[last]" class="form-textbox validate[required]" data-defaultvalue="" autoComplete="section-input_3 family-name" size="15" data-component="last" aria-labelledby="label_3 sublabel_3_last" required="" value="" /><label class="form-sub-label" for="last_3" id="sublabel_3_last" style="min-height:13px">Last Name</label></span></div>
+            </div>
+          </li>
+          <li class="form-line form-line-column form-col-1 jf-required" data-type="control_phone" id="id_4"><label class="form-label form-label-top form-label-auto" id="label_4" for="input_4_full"> Contact Number<span class="form-required">*</span> </label>
+            <div id="cid_4" class="form-input-wide jf-required" data-layout="half"> <span class="form-sub-label-container" style="vertical-align:top"><input type="tel" id="input_4_full" name="q4_contactNumber[full]" data-type="mask-number" class="mask-phone-number form-textbox validate[required, Fill Mask]" data-defaultvalue="" autoComplete="section-input_4 tel-national" style="width:310px" data-masked="true" placeholder=" (91)-0000000000" data-component="phone" aria-labelledby="label_4 sublabel_4_masked" required="" value="" /><label class="form-sub-label" for="input_4_full" id="sublabel_4_masked" style="min-height:13px">Please enter a valid phone number.</label></span> </div>
+          </li>
+          <li class="form-line form-line-column form-col-2 jf-required" data-type="control_email" id="id_5"><label class="form-label form-label-top form-label-auto" id="label_5" for="input_5" aria-hidden="false"> Email Address<span class="form-required">*</span> </label>
+            <div id="cid_5" class="form-input-wide jf-required" data-layout="half"> <span class="form-sub-label-container" style="vertical-align:top"><input type="email" id="input_5" name="q5_emailAddress" class="form-textbox validate[required, Email]" data-defaultvalue="" autoComplete="section-input_5 email" style="width:310px" size="310" data-component="email" aria-labelledby="label_5 sublabel_input_5" required="" value="" /><label class="form-sub-label" for="input_5" id="sublabel_input_5" style="min-height:13px">example@example.com</label></span> </div>
+          </li>
+          <li class="form-line form-line-column form-col-3" data-type="control_textarea" id="id_20"><label class="form-label form-label-top form-label-auto" id="label_20" for="input_20" aria-hidden="false"> Let us know how we can help you! </label>
+            <div id="cid_20" class="form-input-wide" data-layout="full"> <textarea id="input_20" class="form-textarea" name="q20_letUs" style="width:648px;height:163px" data-component="textarea" aria-labelledby="label_20"></textarea> </div>
+          </li>
+          <li class="form-line form-line-column form-col-4" data-type="control_textarea" id="id_21"><label class="form-label form-label-top form-label-auto" id="label_21" for="input_21" aria-hidden="false"> Write Us a Review! </label>
+            <div id="cid_21" class="form-input-wide" data-layout="full"> <textarea id="input_21" class="form-textarea" name="q21_writeUs" style="width:648px;height:163px" data-component="textarea" aria-labelledby="label_21"></textarea> </div>
+          </li>
+          <li class="form-line" data-type="control_button" id="id_15">
+            <div id="cid_15" class="form-input-wide" data-layout="full">
+              <div data-align="auto" class="form-buttons-wrapper form-buttons-auto   jsTest-button-wrapperField"><button id="input_15" type="submit" class="form-submit-button submit-button jf-form-buttons jsTest-submitField legacy-submit" data-component="button" data-content="" onclick="myFunction()">Submit</button></div>
+            </div>
+          </li>
+          <li style="display:none">Should be Empty: <input type="text" name="website" value="" type="hidden" /></li>
+        </ul>
+      </div>
+      <script>
+        JotForm.showJotFormPowered = "new_footer";
+      </script>
+      <script>
+        JotForm.poweredByText = "Powered by Jotform";
+      </script><input type="hidden" class="simple_spc" id="simple_spc" name="simple_spc" value="251222159356454" />
+      <script type="text/javascript">
+        var all_spc = document.querySelectorAll("form[id='251222159356454'] .si" + "mple" + "_spc");
+        for (var i = 0; i < all_spc.length; i++)
+        {
+          all_spc[i].value = "251222159356454-251222159356454";
+        }
+      </script>
+    </form><script type="text/javascript">JotForm.ownerView=true;</script><script type="text/javascript">JotForm.isNewSACL=true;</script>
+ <!-- Contact Info Container (30%) -->
+  </div>
+  <div style="
+  width: 30%; 
+  min-width: 250px; 
+  padding: 10px; 
+  box-sizing: border-box; 
+  padding-top: 80px;
+">
+  <div style="
+    background-color: #ffffff;
+    padding: 50px; 
+    border-radius: 12px; 
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); 
+    border: 1px solid #e0e6ed; 
+    font-family: 'Segoe UI', sans-serif;
+    height: 91%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  ">
+    <div>
+      <div style="background-color: #245352; margin: -50px -50px 20px -50px; padding: 40px 50px; border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: white; text-align: center;">Contact Details</h1>
+      </div>
+      <br><br>
+      <a href="https://wa.me/919373104833" target="_blank" style="text-decoration: none;">
+        <div style="margin-bottom: 15px; display: flex; align-items: center;">
+          <i class="fab fa-whatsapp" style="color: #25D366; width: 25px;"></i>
+          <span style="margin-left: 10px; color: #000;"><strong style="font-size: 22px;">+91-9373104833 / 8459721460</strong></span>
+        </div>
+      </a>
+
+
+
+      <div style="margin-bottom: 15px; display: flex; align-items: center;">
+        <i class="fas fa-envelope" style="color: #245352; width: 25px;"></i>
+        <span style="margin-left: 10px;"><strong style="font-size: 22px;">info@example.com</strong></span>
+      </div>
+
+      <div style="margin-bottom: 15px; display: flex; ">
+        <i class="fas fa-map-marker-alt" style="color: #245352; width: 25px;  margin-top: 10px;"></i>
+        <span style="margin-left: 10px; font-size: 22px;"><b>
+          3-4, Shri Ram Market, <br>
+          Bhimraj Bhushanwar Marg, Sanichara,<br> Nagpur-440018
+          <br>
+        </b></span>
+      </div>
+      <br>
+      <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <i class="fas fa-clock" style="color: #245352; width: 25px; margin-bottom: 80px;"></i>
+        <span style="margin-left: 10px;">
+          <h5 style="margin: 0;font-size: 22px;">Opening Hours</h5>
+          <strong style="font-size: 22px;">Mon - Sat:</strong> <p  style="font-size: 22px;">10:30 AM - 8:30 PM</p>
+        </span>
+      </div>
+
+
+      <div style="margin-top: 10px;">
+        <i class="fas fa-globe" style="color: #245352; width: 25px;"></i>
+        <a href="https://shardaautotraders.com" target="_blank" style="margin-left: 10px; color: #00AEEF; text-decoration: none;"><strong  style="font-size: 22px;">www.shardaautotraders.com</strong></a>
+      </div>
+    </div>
+
+    <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  
+
+<!-- Responsive inline CSS for mobile view -->
+<style>
+  @media only screen and (max-width: 768px) {
+    div[style*="width: 70%"] {
+      width: 100% !important;
+    }
+    div[style*="width: 30%"] {
+      width: 100% !important;
+    }
+  }
+</style>
+    <h1>Find Us</h1>
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3720.982468075185!2d79.08958731165292!3d21.153095983413724!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bd4c0e5d21826f5%3A0x97354d8be11f08b8!2sSharda%20Auto%20Traders!5e0!3m2!1sen!2sin!4v1746267535147!5m2!1sen!2sin" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <footer class="footer text-white bg-dark py-4">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="fw-bold">Contact Us</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> 3-4, Shri Ram Market, Bhimraj Bhushanwar Marg, Sanichara, Nagpur-440018</p>
+                    <p><i class="fab fa-whatsapp"></i> : 9373104833</p>
+                    <p><i class="fab fa-whatsapp"></i> : 8459721460</p>
+                    <p><i class="fas fa-envelope"></i> shardaautotraders@gmail.com</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="fw-bold">GSTIN : 27AAQPM9084L1ZQ</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+     <!-- JavaScript for Search Functionality -->
+     <script>
+      let pages = {
+          "Hydraulic Cylinder and parts": "Hydraulic website/Hydraulic Cylinder and parts.html",
+          "Hydraulic Powerpack": "Hydraulic website/Hydraulic Powerpack.html",
+          "Hydraulic Pumps": "Hydraulic website/Hydraulic pumps.html",
+          "Hydraulic Valves": "Hydraulic website/Hydraulic valves.html",
+          "Hydraulic Motors": "Hydraulic website/hydraulicmotors.html",
+          "Other Hydraulic Components": "Hydraulic website/other hydraulic components.html",
+          "Pressure Control Module": "Hydraulic website/pressure control module.html",
+          "FRL": "Pneumatic Website/FRL.html",
+          "Filter Regulator and Lubricator units": "Pneumatic Website/FRL.html",
+          "Other pneumatic components": "Pneumatic Website/other pneumatic components.html",
+          "Pneumatic connectors": "Pneumatic Website/Pneumatic connecters.html",
+          "Pneumatic control valves": "Pneumatic Website/Pneumatic control valves.html",
+          "Pneumatic Cylinders": "Pneumatic Website/Pneumatic cylinders.html",
+          "PU Pipes": "Pneumatic Website/PU Pipes.html",
+          "Cassette Seals": "seals website/Cassette Seals.html",
+          "Chevron Set": "seals website/Chevron Set.html",
+          "Circlips": "seals website/Circlips.html",
+          "Compact Piston Seal": "seals website/Compact Piston Seal.html",
+          "Concrete Mixer seal": "seals website/Concrete Mixer seal.html",
+          "Dowty seals": "seals website/Dowty seals.html",
+          "Guide belt": "seals website/Guide belt.html",
+          "Mechanical seals": "seals website/Mechanical seals.html",
+          "O-Ring": "seals website/O-Ring.html",
+          "Oilseals": "seals website/Oilseals.html",
+          "Piston Seals": "seals website/Piston Seals.html",
+          "Rod step seal": "seals website/Rod step seal.html",
+          "Trolley jack seal kit": "seals website/Trolley jack seal kit.html",
+          "U Seals": "seals website/U-Seals.html",
+          "Wiper Seals": "seals website/Wiper Seals.html",
+          "Quick release coupling": "Tractor websites/QRC.html",
+          "Tractor gear pumps": "Tractor websites/Tractor gearpumps.html",
+          "Tractor power steering cylinder sealkit": "Tractor websites/Tractor power steering cylinder sealkit.html",
+          "Rotavator seals": "Tractor websites/Rotavator seals.html",
+          "Tractor Power Steering Unit and SealKit": "Tractor websites/Tractor Power Steering Unit and SealKit.html"
+      };
+      
+      function showSuggestions() {
+          let query = document.getElementById("searchInput").value.toLowerCase().replace(/\s+/g, "");
+          let suggestionsBox = document.getElementById("suggestions");
+      
+          // Clear previous suggestions
+          suggestionsBox.innerHTML = "";
+      
+          if (query === "") {
+              suggestionsBox.style.display = "none";
+              return;
+          }
+      
+          let matches = Object.keys(pages).filter(page => 
+              page.toLowerCase().replace(/\s+/g, "").includes(query)
+          );
+      
+          if (matches.length > 0) {
+              matches.forEach(match => {
+                  let listItem = document.createElement("a");
+                  listItem.classList.add("dropdown-item", "suggestion-item");
+                  listItem.textContent = match;
+                  listItem.href = pages[match]; // Click to navigate
+      
+                  suggestionsBox.appendChild(listItem);
+              });
+      
+              suggestionsBox.style.display = "block";
+          } else {
+              suggestionsBox.style.display = "none";
+          }
+      }
+      
+      // Hide dropdown when clicking outside
+      document.addEventListener("click", function(event) {
+          let searchBox = document.getElementById("searchInput");
+          let suggestionsBox = document.getElementById("suggestions");
+      
+          if (!searchBox.contains(event.target) && !suggestionsBox.contains(event.target)) {
+              suggestionsBox.style.display = "none";
+          }
+      });
+      
+      // Function to execute search on button click
+      function performSearch() {
+          let query = document.getElementById("searchInput").value.trim();
+          
+          if (!query) {
+              alert("Please enter a search term.");
+              return;
+          }
+
+          query = query.toLowerCase().replace(/\s+/g, "");
+          let matches = Object.keys(pages).filter(page => 
+              page.toLowerCase().replace(/\s+/g, "").includes(query)
+          );
+      
+          if (matches.length > 0) {
+              window.location.href = pages[matches[0]];
+          } else {
+              alert("No matching results found.");
+          }
+      }
+
+
+
+        
+        document.addEventListener("DOMContentLoaded", function () {
+            let carousel = document.querySelector("#clientCarousel");
+            let items = carousel.querySelectorAll(".carousel-item");
+            let totalItems = items.length;
+            let currentIndex = 0;
+        
+            function slideNext() {
+                items[currentIndex].classList.remove("active");
+                currentIndex = (currentIndex + 1) % totalItems;
+                items[currentIndex].classList.add("active");
+            }
+        
+            setInterval(slideNext, 2000); // Change every 2 seconds
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const slider = document.getElementById("logoSlider");
+            setInterval(() => {
+                let firstLogo = slider.children[0]; 
+                slider.style.transition = "transform 1s ease-in-out"; // Slower transition
+                slider.style.transform = "translateX(-195px)"; // Move left by one logo
+        
+                setTimeout(() => {
+                    slider.appendChild(firstLogo); // Move first logo to end
+                    slider.style.transition = "none";
+                    slider.style.transform = "translateX(0)"; // Reset position instantly
+                }, 1000); // Match the transition duration
+            }, 2000); // Increase interval for a relaxed effect
+        });
+        
+    </script>
+    <script>
+        function myFunction() {
+          alert("ThankYou");
+        }
+    </script>
+     <script>
+      window.addEventListener('load', function() {
+          const preloader = document.getElementById('preloader');
+          setTimeout(() => {
+              preloader.classList.add('fade-out');
+          }, 2000); // Show preloader for 2 seconds
+      });
+  </script>
+</body>
+</html>

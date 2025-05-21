@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Sealing Solutions</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="chatbot.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>    
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #FEFEFE;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+
+      #preloader video {
+        max-width: 200px;
+        max-height: 200px;
+        width: auto;
+        height: auto;
+      }
+
+      #preloader.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+      }
+
+      .about-section {
+        padding: 40px 20px;
+        background-color: #f0f0f0;
+      }
+
+      .about-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        max-width: 1200px;
+        margin: auto;
+      }
+
+      .about-title {
+        grid-column: 1 / -1;
+        text-align: center;
+      }
+
+      .about-title h2 {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+
+      .about-intro {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333;
+        text-align: justify;
+      }
+
+      @media (max-width: 768px) {
+        .about-title h1 {
+          font-size: 32px !important;
+        }
+        .about-title p {
+          font-size: 14px !important;
+        }
+      }
+
+      .about-right {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+      }
+      .about-left {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 725px;
+        box-sizing: border-box;
+        margin: 0 auto;
+      }
+      
+      @media (max-width: 768px) {
+        .about-left {
+          width: 100%;
+          max-width: 100%;
+          
+        }
+      }
+      
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+
+
+      .about-left h3 {
+        font-size: 32px;
+        margin-bottom: 15px;
+        background-color: #245352;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px 5px 0 0;
+        margin: -20px -20px 20px -20px;
+        width: calc(100% + 40px);
+      }
+
+      .slideshow-container img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .benefits-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .benefits-list li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 16px;
+        color: #333;
+      }
+
+      .benefits-list i {
+        color: #245352;
+        margin-right: 10px;
+      }
+
+      /* Responsive layout for wider screens */
+      @media (min-width: 768px) {
+        .about-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .about-title {
+          grid-column: 1 / 3;
+        }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; }
+
+      .slideshow-container {
+        width: 100%;         /* or fixed: e.g., 800px */
+        height: 500px;       /* fixed height */
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        z-index: 0;
+      }
+      
+      .slide.active {
+        opacity: 1;
+        z-index: 1;
+        position: relative;
+      }
+      
+      .slide img,
+      .slide video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* or contain, depending on preference */
+      }
+
+      /* Fade animation */
+      .fade {
+        animation: fadeEffect 1s ease-in-out;
+      }
+      .prev, .next {
+        cursor: pointer;
+        position: absolute;
+        top: 50%;
+        width: auto;
+        padding: 16px;
+        margin-top: -22px;
+        color: white;
+        font-weight: bold;
+        font-size: 22px;
+        transition: 0.3s ease;
+        user-select: none;
+        border-radius: 0 3px 3px 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1;
+      }
+      
+      .next {
+        right: 0;
+        border-radius: 3px 0 0 3px;
+      }
+      
+      .prev:hover, .next:hover {
+        background-color: rgba(0,0,0,0.8);
+      }
+      
+
+      @keyframes fadeEffect {
+        from { opacity: 0.4; }
+        to { opacity: 1; }
+      }
+      .custom-navbar {
+        background-color: #245352 !important; /* Change to your desired color */
+    }
+     /* Ensure dropdown appears directly below */
+     .search-container {
+        position: relative;
+        width: 300px;
+    }
+
+    /* Ensure dropdown appears below the search box */
+    #suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        z-index: 1000;
+        display: none;
+    }
+
+    .suggestion-item {
+        padding: 10px;
+        cursor: pointer;
+        display: block;
+        color: black;
+    }
+
+    .suggestion-item:hover {
+        background-color: #f0f0f0;
+    }
+
+        .nav-item .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        
+        .nav-item .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 0;
+            height: 3px;
+            background-color: #00AEEF; /* Change underline color to yellow */
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        
+        .nav-item .nav-link:hover::after,
+        .nav-item .nav-link.active::after {
+            width: 100%;
+            left: 0;
+        }
+        .responsive-image {
+            max-width: 100%; /* Full width on mobile */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        @media (min-width: 768px) {
+            .responsive-image {
+                max-width: 600px; /* Set max width for larger screens */
+            }
+        }
+        .search-btn {
+          width: 50px;
+          height: 39px;
+          background-color: #1a73e8; /* Bright blue */
+          color: white;
+          border: none;
+          border-radius: 7px; /* Rounded corners */
+          transition: background-color 0.3s ease;
+        }
+        
+        .search-btn:hover {
+          background-color: #1669d6; /* Slightly darker on hover */
+        }
+        
+        .search-container input.form-control {
+          border-radius: 7px 7px 7px 7px;
+          height: 39px;
+          border: 1px solid #ccc;
+        }
+        .infinite-scroll-wrapper img {
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
+          pointer-events: none;
+          user-select: none;
+      }
+      .logo-slider-container {
+        overflow: hidden;
+        width: 100%;
+        position: relative;
+        display: flex;
+        justify-content: center;
+    }
+
+    .logo-track {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        will-change: transform;
+    }
+
+    .logo-box {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .logo-box img {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    /* Mobile specific styles */
+    @media (max-width: 767px) {
+        .logo-track {
+            height: 120px;
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            will-change: transform;
+        }
+
+        .logo-box {
+            flex: 0 0 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-box img {
+            width: 150px;
+            height: 100px;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    }
+
+    /* Desktop specific styles */
+    @media (min-width: 768px) {
+        .logo-track {
+            animation: scroll 30s linear infinite;
+        }
+
+        .logo-box {
+            flex: 0 0 auto;
+            width: 200px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-box img {
+            width: 150px;
+            height: 100px;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    }
+
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    @media (max-width: 768px) {
+      #clients h1 {
+        font-size: 40px !important;
+      }
+    }
+
+    .about-right h2 {
+        font-size: 32px;
+        margin-bottom: 15px;
+        background-color: #245352;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px 5px 0 0;
+        margin: -20px -20px 20px -20px;
+        width: calc(100% + 40px);
+    }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <video autoplay muted loop playsinline>
+            <source src="logo/preloader.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="bg-image"></div>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg custom-navbar" >
+      <div class="container d-flex justify-content-center">
+        <a class="navbar-brand" href="index.html" >
+          <img src="logo\SAT logo.png" alt="logo\logo.png" height="70" style="margin-left: 75px;">
+      </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+              <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+              <ul class="navbar-nav gap-4"> <!-- Adjusted spacing and centered -->
+                  <li class="nav-item"><a class="nav-link  text-white px-4" href="#about" style="font-size: 19px;">About</a></li>
+                  <li class="nav-item"><a class="nav-link  text-white px-4" href="#clients" style="font-size: 19px;">Distributorship</a></li>
+                  <li class="nav-item dropdown">
+                      <a class="nav-link  text-white  px-4" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" style="font-size: 19px;">Products</a>
+                      <ul class="dropdown-menu">
+                          <li><a class="dropdown-item" href="seals main.html"style="font-size: 19px;">Seals</a></li>
+                          <li><a class="dropdown-item" href="Hydraulic main.html"style="font-size: 19px;">Hydraulics</a></li>
+                          <li><a class="dropdown-item" href="pneumatic main.html"style="font-size: 19px;">Pneumatics</a></li>
+                          <li><a class="dropdown-item" href="Tractor main.html"style="font-size: 19px;">Tractor</a></li>
+                      </ul>
+                  </li>
+                  <li class="nav-item"><a class="nav-link  text-white px-4" href="Contact Us.html" style="font-size: 19px;">Contact Us</a></li>
+                  <li class="nav-item"><a class="nav-link  text-white px-4" href="SAT Brochure.pdf" style="font-size: 19px;">Download</a></li>
+              </ul>
+              <div class="search-container d-flex position-relative">
+                  <input class="form-control me-2" type="text" id="searchInput" onkeyup="showSuggestions()" placeholder="Search">
+                  <button class="search-btn d-flex align-items-center justify-content-center">
+                    <i class="fas fa-search"></i>
+                </button>
+                  <div id="suggestions" class="dropdown-menu w-100"></div> <!-- Suggestions dropdown -->
+              </div>
+          </div>
+      </div>
+  </nav>
+  
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 style="font-size: 57px;">Trusted Industrial Sealing <br>Solutions Since <span>1967</span></h1>
+                <p>Leading suppliers of seals, Hydraulics, Pneumatic Components & Tractor Equiments in Nagpur.</p>
+                <div class="hero-buttons">
+                    <a href="Contact Us.html" class="btn btn-primary">CONTACT US</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Categories -->
+ <!-- Product Categories -->
+ <section class="product-categories">
+    <div class="container">
+        <div class="category-grid">
+            <div class="category-card">
+                <div class="category-icon">
+                    <a href="sealS main.html">
+                        <img src="logo\Seals Flexicon.png" alt="Industrial Sealing Solutions"height="150px;">
+                        <h3>Seals</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="category-card">
+                <div class="category-icon">
+                    <a href="Hydraulic main.html"> 
+                        <img src="logo\Hydraulic.png" alt="Industrial Sealing Solutions" height="150px;">
+                        <h3>Hydraulic</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="category-card">
+                <div class="category-icon">
+                    <a href="pneumatic main.html">
+                        <img src="logo\pnuematic flexicon.png" alt="Industrial Sealing Solutions" height="150px;">
+                        <h3>Pnuematic</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="category-card">
+                <div class="category-icon">
+                    <a href="Tractor main.html">
+                        <img src="logo\Tractor.png" alt="Industrial Sealing Solutions" height="150px;">
+                        <h3>Tractor</h3>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+ <!-- About Us Section -->
+<section id="about" class="about-section">
+    <div class="about-grid">
+  
+      <!-- Title and Intro -->
+      <div class="about-title">
+        <h1 style="text-align: left; font-size:52px;" ><b>ABOUT US</b></h1>
+        <p style="text-align: left; font-size: 20px;" >
+            Founded in 1967 by Late Mr. Sharda Prasad Mishra, Sharda Auto Traders has been a trusted name in the supply of industrial hydraulic products, building a reputation that spans generations. In 1995, Mr. Manish Mishra joined the family business, marking a strategic expansion into the pneumatics and tractor seal markets.<br><br>
+
+            Over the years, our product portfolio has grown significantly, and we have built long-standing partnerships with industry leaders such as Freudenberg NOK, SPAC Pneumatics, JK Fenner Industrial Division, and JK Pioneer Tractor Division. As a leading authorised distributor of hydraulic and pneumatic components in the Vidarbha region, we proudly serve prestigious industrial clients including UltraTech Cement Ltd, Western Coalfields Ltd, Prithvi II Missile Regiment, Mercedes-Benz India Pvt Ltd, Haldiram, and many more.<br><br>
+            
+            Our commitment to delivering high-quality products, technical support, and exceptional customer service has earned us the trust and loyalty of our clients. With a legacy of success spanning over 50 years, Sharda Auto Traders continues to lead in industrial solutions and remains dedicated to future growth and expanding customer value.
+        </p>
+      </div>
+  
+      <!-- Left Column - Gallery -->
+      <div class="about-left">
+        <h3>Gallery</h3>
+        <div class="slideshow-container">
+            <div class="slideshow-container">
+                <div class="slide fade">
+                  <img src="hero\shop.jpg" alt="Slide 1">
+                </div>
+                
+                <div class="slide fade">
+                  <img src="hero\shop_inside_1.png" alt="Slide 3">
+                </div>
+                
+                  <div class="slide fade">
+                    <img src="hero\working_1.jpg" alt="Slide 2">
+                  </div>
+                  <div class="slide">
+                    <video autoplay muted loop playsinline style="width:100%; height: 100%;">
+                      <source src="hero\Hydraulic_testing_1.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                  
+                  <div class="slide">
+                    <video autoplay muted loop playsinline style="width:100%; height: 100%;">
+                      <source src="hero\Pneumatic_testing_2.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+<a class="next" onclick="plusSlides(1)">&#10095;</a>
+              </div>
+          </div>
+          <br>
+      </div>
+  
+      <!-- Right Column - Benefits -->
+      <div class="about-right">
+        <ul class="benefits-list" >
+          <h2> Why to Choose Us?</h2>
+          <br>
+          <li><i class="fas fa-check"></i><span> Quality Assured Products</span></li>
+          <li><i class="fas fa-check"></i><span> Wide Range of Seals</span></li>
+          <li><i class="fas fa-check"></i><span> Fast Order Processing</span></li>
+          <li><i class="fas fa-check"></i><span>Widely Trusted by Top Industries</span></li>
+          <li><i class="fas fa-check"></i><span>Decades of Industry Experience</span></li>
+          <li><i class="fas fa-check"></i><span>Competitive Pricing Structure</span></li>
+          <li><i class="fas fa-check"></i><span>ISO-Compliant Product Standards</span></li>
+          <li><i class="fas fa-check"></i><span>In-House Technical Consultation</span></li>
+        </ul>
+      </div>
+  
+    </div>
+  </section>
+
+    
+  <section id="clients" class="container py-5 text-center">
+    <h1 style="font-size: 80px;"><b>Distributors & Channel Partners</b></h1>
+    <div class="logo-slider">
+        <div class="logo-track">
+          
+            <div class="logo-box"><img src="logo/Freudenberg.png" alt="Freudenberg"></div>
+            <div class="logo-box"><img src="logo/JK finner.png" alt="JK finner"></div>
+            <div class="logo-box"><img src="logo/SPAC.png" alt="SPAC"></div>
+            <div class="logo-box"><img src="logo/GDR.png" alt="GDR"></div>
+            <div class="logo-box"><img src="logo/Polyhydron.png" alt="Polyhydron"></div>
+            <div class="logo-box"><img src="logo/Hallite.png" alt="Hallite"></div>
+            <div class="logo-box"><img src="logo/simrit.png" alt="Simrit"></div>
+            <div class="logo-box"><img src="logo/DOWTY.png" alt="DOWTY"></div>
+            <div class="logo-box"><img src="logo/Eaton.png" alt="Eaton"></div>
+            <div class="logo-box"><img src="logo/Rexroth.png" alt="Rexroth"></div>
+            <div class="logo-box"><img src="logo/Yuken.png" alt="Yuken"></div>
+            <div class="logo-box"><img src="logo/VARAK.png" alt="VARAK"></div>
+            <div class="logo-box"><img src="logo/Hydroline.png" alt="Hydroline"></div>
+            <div class="logo-box"><img src="logo/VICKERS.png" alt="VICKERS"></div>
+            <div class="logo-box"><img src="logo/GD Royal.png" alt="GD Royal"></div>
+        </div>
+    </div>
+</section>
+
+    <!-- Footer -->
+    <footer class="footer text-white py-4">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-8" style="margin-bottom:1px;">
+                    <h4 class="fw-bold" style="font-size: 24px; margin-bottom:8px;">Contact Us</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> 3-4, Shri Ram Market, Bhimraj Bhushanwar Marg, Sanichara, Nagpur-440018</p>
+                    <p><i class="fab fa-whatsapp"></i> : 9373104833</p>
+                    <p><i class="fab fa-whatsapp"></i> : 8459721460</p>
+                    <p><i class="fas fa-envelope"></i> shardaautotraders@gmail.com</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="fw-bold">GSTIN : 27AAQPM9084L1ZQ</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+
+     <!-- JavaScript for Search Functionality -->
+     <script>
+        let pages = {
+            "Hydraulic Cylinder and parts": "Hydraulic website/Hydraulic Cylinder and parts.html",
+            "Hydraulic Powerpack": "Hydraulic website/Hydraulic Powerpack.html",
+            "Hydraulic Pumps": "Hydraulic website/Hydraulic pumps.html",
+            "Hydraulic Valves": "Hydraulic website/Hydraulic valves.html",
+            "Hydraulic Motors": "Hydraulic website/hydraulicmotors.html",
+            "Other Hydraulic Components": "Hydraulic website/other hydraulic components.html",
+            "Pressure Control Module": "Hydraulic website/pressure control module.html",
+            "FRL": "Pneumatic Website/FRL.html",
+            "Filter Regulator and Lubricator units": "Pneumatic Website/FRL.html",
+            "Other pneumatic components": "Pneumatic Website/other pneumatic components.html",
+            "Pneumatic connectors": "Pneumatic Website/Pneumatic connecters.html",
+            "Pneumatic control valves": "Pneumatic Website/Pneumatic control valves.html",
+            "Pneumatic Cylinders": "Pneumatic Website/Pneumatic cylinders.html",
+            "PU Pipes": "Pneumatic Website/PU Pipes.html",
+            "Cassette Seals": "seals website/Cassette Seals.html",
+            "Chevron Set": "seals website/Chevron Set.html",
+            "Circlips": "seals website/Circlips.html",
+            "Compact Piston Seal": "seals website/Compact Piston Seal.html",
+            "Concrete Mixer seal": "seals website/Concrete Mixer seal.html",
+            "Dowty seals": "seals website/Dowty seals.html",
+            "Guide belt": "seals website/Guide belt.html",
+            "Mechanical seals": "seals website/Mechanical seals.html",
+            "O-Ring": "seals website/O-Ring.html",
+            "Oilseals": "seals website/Oilseals.html",
+            "Piston Seals": "seals website/Piston Seals.html",
+            "Rod step seal": "seals website/Rod step seal.html",
+            "Trolley jack seal kit": "seals website/Trolley jack seal kit.html",
+            "U Seals": "seals website/U-Seals.html",
+            "Wiper Seals": "seals website/Wiper Seals.html",
+            "Quick release coupling": "Tractor websites/QRC.html",
+            "Tractor gear pumps": "Tractor websites/Tractor gearpumps.html",
+            "Tractor power steering cylinder sealkit": "Tractor websites/Tractor power steering cylinder sealkit.html",
+            "Rotavator seals": "Tractor websites/Rotavator seals.html",
+            "Tractor Power Steering Unit and SealKit": "Tractor websites/Tractor Power Steering Unit and SealKit.html"
+        };
+        
+        function showSuggestions() {
+            let query = document.getElementById("searchInput").value.toLowerCase().replace(/\s+/g, "");
+            let suggestionsBox = document.getElementById("suggestions");
+        
+            // Clear previous suggestions
+            suggestionsBox.innerHTML = "";
+        
+            if (query === "") {
+                suggestionsBox.style.display = "none";
+                return;
+            }
+        
+            let matches = Object.keys(pages).filter(page => 
+                page.toLowerCase().replace(/\s+/g, "").includes(query)
+            );
+        
+            if (matches.length > 0) {
+                matches.forEach(match => {
+                    let listItem = document.createElement("a");
+                    listItem.classList.add("dropdown-item", "suggestion-item");
+                    listItem.textContent = match;
+                    listItem.href = pages[match]; // Click to navigate
+        
+                    suggestionsBox.appendChild(listItem);
+                });
+        
+                suggestionsBox.style.display = "block";
+            } else {
+                suggestionsBox.style.display = "none";
+            }
+        }
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener("click", function(event) {
+            let searchBox = document.getElementById("searchInput");
+            let suggestionsBox = document.getElementById("suggestions");
+        
+            if (!searchBox.contains(event.target) && !suggestionsBox.contains(event.target)) {
+                suggestionsBox.style.display = "none";
+            }
+        });
+        
+        // Function to execute search on button click
+        function performSearch() {
+            let query = document.getElementById("searchInput").value.trim();
+            
+            if (!query) {
+                alert("Please enter a search term.");
+                return;
+            }
+
+            query = query.toLowerCase().replace(/\s+/g, "");
+            let matches = Object.keys(pages).filter(page => 
+                page.toLowerCase().replace(/\s+/g, "").includes(query)
+            );
+        
+            if (matches.length > 0) {
+                window.location.href = pages[matches[0]];
+            } else {
+                alert("No matching results found.");
+            }
+        }
+
+
+
+            
+    </script>
+    <script>
+        let slideIndex = 0;
+let slides = document.getElementsByClassName("slide");
+let slideInterval = null;
+
+function showSlides(n) {
+  for (let i = 0; i < slides.length; i++) {
+    slides[i].classList.remove("active");
+
+    let video = slides[i].querySelector("video");
+    if (video) {
+      video.pause();
+      video.currentTime = 0; // reset to beginning
+    }
+  }
+
+  slideIndex = (n + slides.length) % slides.length;
+  let currentSlide = slides[slideIndex];
+  currentSlide.classList.add("active");
+
+  let activeVideo = currentSlide.querySelector("video");
+  if (activeVideo) activeVideo.play();
+}
+
+function plusSlides(n) {
+  clearInterval(slideInterval); // pause autoplay when manually navigating
+  showSlides(slideIndex + n);
+  startAutoplay(); // restart autoplay
+}
+
+function startAutoplay() {
+  slideInterval = setInterval(() => {
+    showSlides(slideIndex + 1);
+  }, 5000); // change every 5 seconds
+}
+
+// Initialize
+showSlides(slideIndex);
+startAutoplay();
+
+        
+        
+        
+      </script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const track = document.querySelector('.logo-track');
+            const boxes = document.querySelectorAll('.logo-box');
+            let currentIndex = 0;
+            let sliderInterval;
+            
+            // Adjust this value to change the jump distance
+            // 100 = full width jump
+            // 50 = half width jump
+            // 200 = double width jump
+            const jumpDistance = 96;
+
+            function updateSlider() {
+                if (window.innerWidth <= 767) {
+                    // Mobile view - 0.5s transition
+                    track.style.transition = 'transform 0.5s ease-in-out';
+                    track.style.transform = `translateX(-${currentIndex * jumpDistance}%)`;
+                } else {
+                    // Desktop view - continuous scroll
+                    track.style.transform = 'translateX(0)';
+                    track.style.animation = 'scroll 30s linear infinite';
+                }
+            }
+
+            function startSlider() {
+                if (window.innerWidth <= 767) {
+                    sliderInterval = setInterval(() => {
+                        currentIndex = (currentIndex + 1) % boxes.length;
+                        updateSlider();
+                    }, 1500); // 1s stay + 0.5s transition = 1.5s total
+                }
+            }
+
+            function stopSlider() {
+                clearInterval(sliderInterval);
+            }
+
+            // Initialize
+            updateSlider();
+            startSlider();
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                stopSlider();
+                currentIndex = 0;
+                updateSlider();
+                startSlider();
+            });
+        });
+    </script>
+      
+      
+        
+        
+        
+      
+    <!-- Chatbot -->
+    <div class="chat-container">
+        <button class="chat-button">
+            <img src="logo\chatbot logo.png" alt="Chat" width="48" height="48" style="border-radius: 50%;">
+        </button>
+        <div class="chat-window">
+            <div class="chat-header">
+                <h3>Chat with us</h3>
+                <button class="close-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" class="message-input" placeholder="Type your message...">
+                <button class="send-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="chatbot.js"></script>
+
+    <!-- Preloader Script -->
+    <script>
+        window.addEventListener('load', function() {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => {
+                preloader.classList.add('fade-out');
+            }, 2000); // Show preloader for 2 seconds
+        });
+    </script>
+</body>
+</html>
