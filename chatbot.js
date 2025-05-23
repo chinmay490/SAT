@@ -1662,56 +1662,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle order submission
     async function handleSubmitOrder() {
+        if (isSubmitting) return;
         isSubmitting = true;
+
         try {
-            // Create a clean version of orderData for sending
-            const cleanOrderData = { ...orderData };
-            
-            // If there's additionalInfo, convert it to just a string of values
-            if (cleanOrderData.additionalInfo) {
-                cleanOrderData.additionalInfo = Object.values(cleanOrderData.additionalInfo).join('\n');
-            }
+            // Prepare the order data
+            const orderData = {
+                productclass: currentState,
+                productType: orderData.productType || '',
+                subproducttype: orderData.subproducttype || '',
+                classification: orderData.classification || '',
+                brand_or_material: orderData.brand_or_material || '',
+                additionalInfo: orderData.additionalInfo || '',
+                quantity: orderData.quantity || '',
+                customerName: orderData.customerName || '',
+                customerPhone: orderData.customerPhone || '',
+                customerEmail: orderData.customerEmail || '',
+                customerlocation: orderData.customerlocation || '',
+                deliveryDate: orderData.deliveryDate || ''
+            };
 
-            console.log("Sending order data:", cleanOrderData); // Debug log
-
-            // First check if the server is running
-            try {
-                const serverCheck = await fetch("http://localhost:5000/");
-                if (!serverCheck.ok) {
-                    throw new Error("Email server is not responding");
-                }
-            } catch (error) {
-                console.error("Server check failed:", error);
-                addMessage("The email server is not responding. Please try again later.", 'bot');
-                return;
-            }
-
-            const response = await fetch("http://localhost:5000/api/send-email", {
-                method: "POST",
+            // Send the order data to the email service
+            const response = await fetch('https://sat-p3hh.onrender.com/api/send-email', {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ orderData: cleanOrderData }),
-                mode: "cors"
+                body: JSON.stringify({ orderData })
             });
 
-            console.log("Response status:", response.status); // Debug log
-            const responseData = await response.json();
-            console.log("Response data:", responseData); // Debug log
+            const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(responseData.error || "Failed to submit order");
-            }
-
-            const nextNode = chatFlow.nodes.find((node) => node.id === 'thank_you_confirmation');
-            if (nextNode) {
-                currentState = nextNode.id;
-                showCurrentNode();
+            if (response.ok) {
+                // Show success message
+                addMessage('Thank you for your order! We will contact you shortly.', 'bot');
+                // Reset the chat after successful submission
+                setTimeout(() => {
+                    currentState = 'visit';
+                    orderData = {};
+                    showCurrentNode();
+                }, 3000);
+            } else {
+                // Show error message
+                addMessage('Sorry, there was an error processing your order. Please try again later.', 'bot');
             }
         } catch (error) {
-            console.error("Error submitting order:", error);
-            addMessage("Sorry, there was an error submitting your order. Please try again.", 'bot');
+            console.error('Error submitting order:', error);
+            addMessage('Sorry, there was an error processing your order. Please try again later.', 'bot');
         } finally {
             isSubmitting = false;
         }
