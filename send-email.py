@@ -26,7 +26,7 @@ DATABASE_URL = "postgresql://neondb_owner:npg_9cLginjNh1xG@ep-mute-sound-a42klwj
 
 # Outlook business email credentials (Hostinger)
 OUTLOOK_USER = 'enquiry@shardaautotraders.com'  # Replace with your Outlook business email
-OUTLOOK_PASS = 'ShardaAutoTraders#9922339'  # Replace with your Outlook password
+OUTLOOK_PASS = 'ShardaAutoTraders#9922339'  # Updated with provided password
 
 def get_db_connection():
     try:
@@ -165,8 +165,7 @@ def send_email():
 
         # Send email
         try:
-            with smtplib.SMTP('smtp.office365.com', 587) as server:
-                server.starttls()
+            with smtplib.SMTP_SSL('smtpout.secureserver.net', 465) as server:
                 server.login(OUTLOOK_USER, OUTLOOK_PASS)
                 server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
             logger.info("Email sent successfully")
