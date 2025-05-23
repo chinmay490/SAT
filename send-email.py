@@ -115,6 +115,13 @@ def send_email():
             logger.error("No order data provided in request")
             return jsonify({'error': 'No order data provided'}), 400
 
+        # Validate required fields
+        required_fields = ['customerName', 'customerEmail', 'customerPhone']
+        missing_fields = [field for field in required_fields if not order_data.get(field)]
+        if missing_fields:
+            logger.error("Missing required fields: %s", missing_fields)
+            return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
+
         # Save order to database
         try:
             order_id = save_order_to_db(order_data)
@@ -124,25 +131,46 @@ def send_email():
             return jsonify({'error': 'Failed to save order to database'}), 500
 
         # Format the email content
-        summary = "Order Summary:\n"
-        for key, value in order_data.items():
-            if value:  # Only include non-empty values
+        summary = "New Order Summary:\n\n"
+        summary += "Product Details:\n"
+        summary += f"Product Class: {order_data.get('productclass', 'N/A')}\n"
+        summary += f"Product Type: {order_data.get('productType', 'N/A')}\n"
+        summary += f"Sub Product Type: {order_data.get('subproducttype', 'N/A')}\n"
+        summary += f"Brand/Material: {order_data.get('brand_or_material', 'N/A')}\n"
+        summary += f"Classification: {order_data.get('classification', 'N/A')}\n"
+        summary += f"Quantity: {order_data.get('quantity', 'N/A')}\n\n"
+
+        if order_data.get('additionalInfo'):
+            summary += "Additional Specifications:\n"
+            for key, value in order_data['additionalInfo'].items():
                 summary += f"{key}: {value}\n"
+            summary += "\n"
+
+        summary += "Customer Details:\n"
+        summary += f"Name/Company: {order_data.get('customerName', 'N/A')}\n"
+        summary += f"Email: {order_data.get('customerEmail', 'N/A')}\n"
+        summary += f"Phone: {order_data.get('customerPhone', 'N/A')}\n"
+        summary += f"Delivery Address: {order_data.get('customerlocation', 'N/A')}\n"
+        summary += f"Delivery Date: {order_data.get('deliveryDate', 'N/A')}\n"
 
         logger.debug("Formatted email content: %s", summary)
 
         msg = MIMEText(summary)
-        msg['Subject'] = 'New Order Summary'
+        msg['Subject'] = f'New Order from {order_data.get("customerName", "Customer")}'
         msg['From'] = GMAIL_USER
         msg['To'] = GMAIL_USER
 
         # Send email
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login(GMAIL_USER, GMAIL_PASS)
-            server.sendmail(GMAIL_USER, GMAIL_USER, msg.as_string())
-        
-        logger.info("Email sent successfully")
+        try:
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(GMAIL_USER, GMAIL_PASS)
+                server.sendmail(GMAIL_USER, GMAIL_USER, msg.as_string())
+            logger.info("Email sent successfully")
+        except Exception as e:
+            logger.error("Failed to send email: %s", str(e))
+            return jsonify({'error': 'Failed to send email'}), 500
+
         return jsonify({
             'message': 'Order saved and email sent successfully',
             'orderId': order_id
