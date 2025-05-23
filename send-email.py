@@ -26,7 +26,7 @@ DATABASE_URL = "postgresql://neondb_owner:npg_9cLginjNh1xG@ep-mute-sound-a42klwj
 
 # Outlook business email credentials (Hostinger)
 OUTLOOK_USER = 'enquiry@shardaautotraders.com'  # Replace with your Outlook business email
-OUTLOOK_PASS = 'ShardaAutoTraders#9922339'  # Updated with provided password
+OUTLOOK_PASS = 'ShardaAutoTraders#99223339'  # Updated with provided password
 
 def get_db_connection():
     try:
