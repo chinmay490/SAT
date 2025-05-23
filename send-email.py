@@ -24,9 +24,9 @@ CORS(app, resources={
 # Database configuration
 DATABASE_URL = "postgresql://neondb_owner:npg_9cLginjNh1xG@ep-mute-sound-a42klwjp-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-# Gmail credentials (use an App Password, not your real password)
-GMAIL_USER = 'chinmaymishra490@gmail.com'
-GMAIL_PASS = 'oegi lvvy xjll xomd'  # 16-char app password
+# Outlook business email credentials (Hostinger)
+OUTLOOK_USER = 'enquiry@shardaautotraders.com'  # Replace with your Outlook business email
+OUTLOOK_PASS = 'ShardaAutoTraders#9922339'  # Replace with your Outlook password
 
 def get_db_connection():
     try:
@@ -160,15 +160,15 @@ def send_email():
 
         msg = MIMEText(summary)
         msg['Subject'] = f'New Order from {order_data.get("customerName", "Customer")}'
-        msg['From'] = GMAIL_USER
-        msg['To'] = GMAIL_USER
+        msg['From'] = OUTLOOK_USER
+        msg['To'] = OUTLOOK_USER
 
         # Send email
         try:
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            with smtplib.SMTP('smtp.office365.com', 587) as server:
                 server.starttls()
-                server.login(GMAIL_USER, GMAIL_PASS)
-                server.sendmail(GMAIL_USER, GMAIL_USER, msg.as_string())
+                server.login(OUTLOOK_USER, OUTLOOK_PASS)
+                server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
             logger.info("Email sent successfully")
         except Exception as e:
             logger.error("Failed to send email: %s", str(e))
