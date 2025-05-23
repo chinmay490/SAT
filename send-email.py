@@ -54,6 +54,9 @@ def save_order_to_db(order_data):
         order_id = str(uuid.uuid4())
         
         # Prepare the order data
+        additional_info = order_data.get('additionalInfo', '')
+        if isinstance(additional_info, dict):
+            additional_info = '\n'.join(str(v) for v in additional_info.values())
         order_values = [
             order_id,
             order_data.get('productclass', ''),
@@ -61,7 +64,7 @@ def save_order_to_db(order_data):
             order_data.get('subproducttype', ''),
             order_data.get('classification', ''),
             order_data.get('brand_or_material', ''),
-            order_data.get('additionalInfo', ''),
+            additional_info,
             str(order_data.get('quantity', '')),
             order_data.get('customerName', ''),
             order_data.get('customerPhone', ''),
