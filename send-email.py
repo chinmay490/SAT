@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
@@ -6,6 +6,8 @@ import logging
 import pg8000
 from datetime import datetime
 import uuid
+import time
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -15,11 +17,16 @@ app = Flask(__name__)
 # Configure CORS to allow all origins and methods
 CORS(app, resources={
     r"/*": {
-        "origins": "*",
+        "origins": ["https://shardaautotraders.com", "http://shardaautotraders.com", "http://localhost:3000"],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
     }
 })
+
+# Server state tracking
+server_start_time = None
+is_server_initialized = False
+MAIN_DOMAIN = "https://shardaautotraders.com"
 
 # Database configuration
 DATABASE_URL = "postgresql://neondb_owner:npg_9cLginjNh1xG@ep-mute-sound-a42klwjp-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
@@ -27,6 +34,33 @@ DATABASE_URL = "postgresql://neondb_owner:npg_9cLginjNh1xG@ep-mute-sound-a42klwj
 # Outlook business email credentials (Hostinger)
 OUTLOOK_USER = 'enquiry@shardaautotraders.com'  # Replace with your Outlook business email
 OUTLOOK_PASS = 'ShardaAutoTraders#99223339'  # Updated with provided password
+
+def initialize_server():
+    global is_server_initialized, server_start_time
+    if not is_server_initialized:
+        logger.info("Initializing server components...")
+        server_start_time = time.time()
+        
+        # Initialize database connection pool
+        try:
+            conn = get_db_connection()
+            conn.close()
+            logger.info("Database connection pool initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize database pool: {str(e)}")
+            raise
+        
+        # Initialize email server connection
+        try:
+            with smtplib.SMTP_SSL('smtpout.secureserver.net', 465) as server:
+                server.login(OUTLOOK_USER, OUTLOOK_PASS)
+            logger.info("Email server connection verified")
+        except Exception as e:
+            logger.error(f"Failed to initialize email server: {str(e)}")
+            raise
+        
+        is_server_initialized = True
+        logger.info("Server initialization completed")
 
 def get_db_connection():
     try:
@@ -96,12 +130,36 @@ def save_order_to_db(order_data):
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Email server is running"})
+    # Initialize server when main domain is accessed
+    initialize_server()
+    
+    # Get the referrer to check if request came from main domain
+    referrer = request.headers.get('Referer', '')
+    user_agent = request.headers.get('User-Agent', '')
+    
+    logger.info(f"Request received from: {referrer}")
+    logger.info(f"User Agent: {user_agent}")
+    
+    return jsonify({
+        "message": "Email server is running",
+        "status": "active",
+        "uptime": time.time() - server_start_time if server_start_time else 0,
+        "initialized": is_server_initialized
+    })
 
 @app.route('/api/send-email', methods=['POST', 'OPTIONS'])
 def send_email():
     if request.method == 'OPTIONS':
         return '', 200
+        
+    # Initialize server if not already initialized
+    initialize_server()
+    
+    # Check if request is from main domain
+    origin = request.headers.get('Origin', '')
+    if not any(domain in origin for domain in ['shardaautotraders.com', 'localhost:3000']):
+        logger.warning(f"Unauthorized request from origin: {origin}")
+        return jsonify({'error': 'Unauthorized origin'}), 403
         
     try:
         logger.debug("Received request data: %s", request.get_data())
@@ -181,5 +239,25 @@ def send_email():
         logger.error("Error processing order: %s", str(e), exc_info=True)
         return jsonify({'error': f'Failed to process order: {str(e)}'}), 500
 
+@app.route('/health')
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'initialized': is_server_initialized,
+        'uptime': time.time() - server_start_time if server_start_time else 0,
+        'domain': MAIN_DOMAIN
+    })
+
+@app.route('/wake')
+def wake_server():
+    """Endpoint to wake up the server"""
+    initialize_server()
+    return jsonify({
+        'status': 'awake',
+        'initialized': is_server_initialized,
+        'uptime': time.time() - server_start_time if server_start_time else 0
+    })
+
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
