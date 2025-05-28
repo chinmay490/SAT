@@ -1161,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: "Can you please mention your tractor's brand and model?. To learn more about tractor power steering cylinder seals, you can visit our product page.",
                 input_type: "text",
                 next: "Quantity"
-            }
+            },
             {
                 id: "Tractor_steering_orbitrol_motor_info",
                 type: "input",
