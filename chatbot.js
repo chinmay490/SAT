@@ -192,9 +192,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: "👋 Welcome to our Sharda Auto Traders! I'm here to assist you. What service are you looking for?",
                 type: "options",
                 options: [
-                    { text: "Products", next: "welcome" },
-                    { text: "Visit", next: "visit_1" }
+                    {text: "Products", next: "welcome"},
+                    {text: "Industrial Visit", next: "visit_1"},
+                    {text: "Quotation", next: "quotation_1"}
                 ]
+            },
+            {
+                id: "quotation_1",
+                text: "Please visit our Contact Us page and fill in your requirement under the (Quotation) section.<br><br> We'll get back to you as soon as possible!<br><br>👉 <a href='Contact Us.html' style='color: #245352; text-decoration: underline;'>Go to Contact Us Page</a>",
             },
             {
                 id: "visit_1",
@@ -431,6 +436,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: "Quantity",
                 type: "input",
                 text: "How many units do you need?",
+                input_type: "text",
+                next: "customer_name"
+            },
+            {
+                id: "Repair_quantity",
+                type: "input",
+                text: "How many units?",
                 input_type: "text",
                 next: "customer_name"
             },
@@ -844,9 +856,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     { text: "Hydraulic cylinder", next: "repair_cylinder_type" },
                     { text: "Hydraulic pumps", next: "repair_pump_type" },
                     { text: "Hydraulic motor", next: "repair_motor_issue" },
+                    { text: "gear box", next: "gear_box_issue" },
                     { text: "Hydraulic Jack", next: "repair_jack_issue" },
                     { text: "Hydraulic hand lever valves", next: "repair_valve_note" },
-                    { text: "Reconstruction of hydraulic power pack", next: "repair_power_pack" }
+                    { text: "Reconstruction of hydraulic power pack", next: "repair_power_pack" },
+                    { text: "Tractor steering orbitrol motor", next: "Tractor_steering_orbitrol_motor_info" }
                 ]
             },
             {
@@ -864,14 +878,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: "input",
                 text: "What problem are you facing with the hydraulic cylinder?",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
+            },
+             {
+                id: "gear_box_issue",
+                type: "input",
+                text: "What problem are you facing with the gear box?",
+                input_type: "text",
+                next: "Repair_quantity"
             },
             {
                 id: "repair_motor_issue",
                 type: "input",
                 text: "Can you please describe the issue you're experiencing with the hydraulic motor?",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
             },
             {
                 id: "repair_pump_type",
@@ -888,14 +909,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: "input",
                 text: "We primarily handle seal replacements and repairs for gear pumps, piston pumps, and vane pumps. Plungers for piston pumps are also available. In most cases, redesigning gears or cartridges is not a feasible solution. Can you please describe the issue you're experiencing with the pump?",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
             },
             {
                 id: "repair_jack_issue",
                 type: "input",
                 text: "Can you please describe the issue you're experiencing with the jack?",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
             },
             {
                 id: "repair_valve_note",
@@ -909,14 +930,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: "input",
                 text: "Can you please describe the issue you're experiencing with the valve?",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
             },
             {
                 id: "repair_power_pack",
                 type: "input",
                 text: "To help you with the reconstruction of the power pack, can you please share its key specifications like motor capacity, pump type, tank capacity, working pressure, and flow rate. If you have any other requirements, feel free to mention those as well.",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
             },
             {
                 id: "new_pneumatic_equipment",
@@ -951,7 +972,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: "input",
                 text: "Please tell the problem that you are facing?",
                 input_type: "text",
-                next: "Quantity"
+                next: "Repair_quantity"
             },
             {
                 id: "pneumatic_valve_type",
@@ -1070,6 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     { text: "Orbitrol power steering unit", next: "Orbitrol_power_steering_unit_info" },
                     { text: "Orbitrol power steering unit sealkit", next: "Orbitrol_power_steering_unit_sealkit_info" },
                     { text: "Power steering cylinder sealkit", next: "power_steering_cylinder_sealkit_info" }
+                    
                 ]
             },
             {
@@ -1137,6 +1159,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: "power_steering_cylinder_sealkit_info",
                 type: "input",
                 text: "Can you please mention your tractor's brand and model?. To learn more about tractor power steering cylinder seals, you can visit our product page.",
+                input_type: "text",
+                next: "Quantity"
+            }
+            {
+                id: "Tractor_steering_orbitrol_motor_info",
+                type: "input",
+                text: "Can you please mention your tractor's brand and model?. To learn more about orbitrol motor, you can visit our product page.",
                 input_type: "text",
                 next: "Quantity"
             }
@@ -1644,6 +1673,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 color: #245352;
                 margin-right: 5px;
             }
+            .submit-order {
+                background-color: #245352;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.3s ease;
+            }
+            .submit-order:hover {
+                background-color: #1a3d3c;
+            }
+            .submit-order:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
         `;
         document.head.appendChild(style);
 
@@ -1666,49 +1712,54 @@ document.addEventListener('DOMContentLoaded', function() {
         isSubmitting = true;
 
         try {
-            // Prepare the order data
-            const orderData = {
-                productclass: currentState,
-                productType: orderData.productType || '',
-                subproducttype: orderData.subproducttype || '',
-                classification: orderData.classification || '',
-                brand_or_material: orderData.brand_or_material || '',
-                additionalInfo: orderData.additionalInfo || '',
-                quantity: orderData.quantity || '',
-                customerName: orderData.customerName || '',
-                customerPhone: orderData.customerPhone || '',
-                customerEmail: orderData.customerEmail || '',
-                customerlocation: orderData.customerlocation || '',
-                deliveryDate: orderData.deliveryDate || ''
-            };
+            // Create a clean version of orderData for sending
+            const cleanOrderData = { ...orderData };
+            
+            // Keep additionalInfo as an object, don't convert to string
+            if (cleanOrderData.additionalInfo) {
+                // Ensure it's an object with key-value pairs
+                if (typeof cleanOrderData.additionalInfo === 'string') {
+                    cleanOrderData.additionalInfo = { details: cleanOrderData.additionalInfo };
+                }
+            }
+
+            console.log("Sending order data:", cleanOrderData); // Debug log
 
             // Send the order data to the email service
             const response = await fetch('https://sat-p3hh.onrender.com/api/send-email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({ orderData })
+                mode: 'cors',
+                body: JSON.stringify({ orderData: cleanOrderData })
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                // Show success message
-                addMessage('Thank you for your order! We will contact you shortly.', 'bot');
-                // Reset the chat after successful submission
-                setTimeout(() => {
-                    currentState = 'visit';
-                    orderData = {};
-                    showCurrentNode();
-                }, 3000);
-            } else {
-                // Show error message
-                addMessage('Sorry, there was an error processing your order. Please try again later.', 'bot');
+            console.log("Response status:", response.status); // Debug log
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Error response:", errorText);
+                throw new Error(errorText || "Failed to submit order");
             }
+
+            const responseData = await response.json();
+            console.log("Response data:", responseData); // Debug log
+
+            // Show success message
+            addMessage('Thank you for your order! We will contact you shortly.', 'bot');
+            
+            // Reset the chat after successful submission
+            setTimeout(() => {
+                currentState = 'visit';
+                orderData = {};
+                showCurrentNode();
+            }, 3000);
+
         } catch (error) {
-            console.error('Error submitting order:', error);
-            addMessage('Sorry, there was an error processing your order. Please try again later.', 'bot');
+            console.error("Error submitting order:", error);
+            addMessage("Sorry, there was an error submitting your order. Please try again.", 'bot');
         } finally {
             isSubmitting = false;
         }
