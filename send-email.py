@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import smtplib
 from email.mime.text import MIMEText
 import logging
@@ -14,27 +14,33 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Configure CORS to allow all origins and methods
-CORS(app, resources={
-    r"/*": {
-        "origins": ["https://shardaautotraders.com", "http://shardaautotraders.com", "http://localhost:3000", "https://www.shardaautotraders.com", "http://www.shardaautotraders.com"],
-        "methods": ["GET", "POST", "OPTIONS", "HEAD"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": False
-    }
-})
 
-# Add after_request handler to ensure CORS headers are always present
+# Configure CORS - use simpler approach that works better with errors
+# Allow specific origins but be flexible
+CORS(app, 
+     origins=["https://shardaautotraders.com", "http://shardaautotraders.com", 
+              "http://localhost:3000", "https://www.shardaautotraders.com", 
+              "http://www.shardaautotraders.com"],
+     methods=["GET", "POST", "OPTIONS", "HEAD"],
+     allow_headers=["Content-Type", "Authorization"],
+     supports_credentials=False)
+
+# Add after_request handler to ensure CORS headers are always present (even on errors)
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin', '')
+    # Always add CORS headers if origin matches
     if origin:
-        # Check if origin contains shardaautotraders.com or localhost
-        if 'shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower():
-            response.headers.add('Access-Control-Allow-Origin', origin)
-            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-            response.headers.add('Access-Control-Max-Age', '3600')
+        allowed_origins = ["https://shardaautotraders.com", "http://shardaautotraders.com", 
+                          "http://localhost:3000", "https://www.shardaautotraders.com", 
+                          "http://www.shardaautotraders.com"]
+        # Check if origin matches any allowed origin (case-insensitive)
+        origin_lower = origin.lower()
+        if any(allowed.lower() in origin_lower or origin_lower in allowed.lower() for allowed in allowed_origins):
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            response.headers['Access-Control-Max-Age'] = '3600'
     return response
 
 # Server state tracking
@@ -167,12 +173,22 @@ def home():
     })
 
 @app.route('/api/send-email', methods=['POST', 'OPTIONS'])
+@cross_origin(origins=["https://shardaautotraders.com", "http://shardaautotraders.com", 
+                      "http://localhost:3000", "https://www.shardaautotraders.com", 
+                      "http://www.shardaautotraders.com"],
+             methods=["POST", "OPTIONS"],
+             allow_headers=["Content-Type", "Authorization"],
+             supports_credentials=False)
 def send_email():
     if request.method == 'OPTIONS':
+        # Handle preflight request
+        origin = request.headers.get('Origin', '')
         response = jsonify({})
-        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
-        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            response.headers['Access-Control-Max-Age'] = '3600'
         return response, 200
         
     # Initialize server if not already initialized (non-blocking)
@@ -314,9 +330,9 @@ def send_email():
         # Ensure CORS headers are added even on error
         origin = request.headers.get('Origin', '')
         if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
-            response.headers.add('Access-Control-Allow-Origin', origin)
-            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response, 500
 
 @app.route('/health')
@@ -349,15 +365,26 @@ def wake_server():
     })
 
 # Global error handler to ensure CORS headers on all errors
+@app.errorhandler(500)
+def handle_500_error(e):
+    logger.error(f"500 error: {str(e)}", exc_info=True)
+    response = jsonify({'error': 'Internal server error', 'message': str(e) if hasattr(e, '__str__') else 'Unknown error'})
+    origin = request.headers.get('Origin', '')
+    if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response, 500
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-    response = jsonify({'error': 'Internal server error', 'message': str(e)})
+    response = jsonify({'error': 'Internal server error', 'message': str(e) if hasattr(e, '__str__') else 'Unknown error'})
     origin = request.headers.get('Origin', '')
     if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response, 500
 
 if __name__ == '__main__':
