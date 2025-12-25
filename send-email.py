@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import smtplib
-from email.mime.text import MIMEText
+from flask_mail import Mail, Message
 import logging
 import pg8000
 from datetime import datetime
@@ -25,11 +24,22 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      supports_credentials=False)
 
+# Configure Flask-Mail for email sending
+app.config['MAIL_SERVER'] = 'smtpout.secureserver.net'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USERNAME'] = 'enquiry@shardaautotraders.com'
+app.config['MAIL_PASSWORD'] = 'ShardaAutoTraders#99223339'
+app.config['MAIL_DEFAULT_SENDER'] = 'enquiry@shardaautotraders.com'
+app.config['MAIL_TIMEOUT'] = 10  # 10 second timeout
+
+mail = Mail(app)
+
 # Add after_request handler to ensure CORS headers are ALWAYS present
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin', '')
-    logger.debug(f"after_request: Origin={origin}, Status={response.status_code}")
     # Always add CORS headers if origin matches (even if already present, we'll overwrite to ensure it's correct)
     if origin:
         allowed_origins = ["https://shardaautotraders.com", "http://shardaautotraders.com", 
@@ -44,8 +54,7 @@ def after_request(response):
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
             response.headers['Access-Control-Max-Age'] = '3600'
             logger.debug(f"Added CORS headers for origin: {origin}")
-    else:
-        logger.warning("No Origin header in request")
+    # Note: No Origin header is normal for direct requests, health checks, etc. - not an error
     return response
 
 # Server state tracking
@@ -56,9 +65,8 @@ MAIN_DOMAIN = "https://shardaautotraders.com"
 # Database configuration
 DATABASE_URL = "postgresql://neondb_owner:npg_9cLginjNh1xG@ep-mute-sound-a42klwjp-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-# Outlook business email credentials (Hostinger)
-OUTLOOK_USER = 'enquiry@shardaautotraders.com'  # Replace with your Outlook business email
-OUTLOOK_PASS = 'ShardaAutoTraders#99223339'  # Updated with provided password
+# Email configuration
+EMAIL_TO = 'enquiry@shardaautotraders.com'
 
 def initialize_server():
     global is_server_initialized, server_start_time
@@ -260,60 +268,53 @@ def send_email():
 
             logger.debug("Formatted email content: %s", summary)
 
-            msg = MIMEText(summary)
-            msg['Subject'] = f'New Order from {order_data.get("customerName", "Customer")}'
-            msg['From'] = OUTLOOK_USER
-            msg['To'] = OUTLOOK_USER
-
-            # Send email with timeout to prevent blocking
+            # Send email using Flask-Mail (SMTP only, no API key needed)
             email_error = None
             email_sent = False
+            email_subject = f'New Order from {order_data.get("customerName", "Customer")}'
             
-            # Try multiple SMTP configurations for Hostinger/GoDaddy email
-            # Use shorter timeout to prevent worker timeouts (Gunicorn default is 30s)
+            # Try multiple SMTP configurations
             smtp_configs = [
-                {'host': 'smtpout.secureserver.net', 'port': 465, 'use_ssl': True, 'timeout': 5},
-                {'host': 'smtpout.secureserver.net', 'port': 587, 'use_ssl': False, 'timeout': 5},  # STARTTLS
+                {'port': 465, 'use_ssl': True, 'use_tls': False},
+                {'port': 587, 'use_ssl': False, 'use_tls': True},
+                {'port': 80, 'use_ssl': False, 'use_tls': False},  # Try port 80 as last resort
             ]
             
             for config in smtp_configs:
-                server = None
                 try:
-                    logger.info(f"Attempting email send via {config['host']}:{config['port']} (SSL: {config['use_ssl']})")
+                    logger.info(f"Attempting email send via SMTP port {config['port']} (SSL: {config['use_ssl']}, TLS: {config['use_tls']})")
                     
-                    if config['use_ssl']:
-                        server = smtplib.SMTP_SSL(config['host'], config['port'], timeout=config['timeout'])
-                    else:
-                        server = smtplib.SMTP(config['host'], config['port'], timeout=config['timeout'])
-                        if config['port'] == 587:
-                            server.starttls()
+                    # Temporarily update mail config for this attempt
+                    app.config['MAIL_PORT'] = config['port']
+                    app.config['MAIL_USE_SSL'] = config['use_ssl']
+                    app.config['MAIL_USE_TLS'] = config['use_tls']
                     
-                    server.login(OUTLOOK_USER, OUTLOOK_PASS)
-                    server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
+                    # Reinitialize mail with new config
+                    mail.init_app(app)
                     
-                    logger.info(f"Email sent successfully via {config['host']}:{config['port']}")
+                    # Create and send message
+                    msg = Message(
+                        subject=email_subject,
+                        recipients=[EMAIL_TO],
+                        body=summary
+                    )
+                    
+                    mail.send(msg)
+                    
+                    logger.info(f"Email sent successfully via SMTP port {config['port']}")
                     email_sent = True
                     break
                     
-                except (smtplib.SMTPAuthenticationError, smtplib.SMTPException) as e:
-                    email_error = f"SMTP error: {str(e)}"
-                    logger.error(f"SMTP error with {config['host']}:{config['port']}: {str(e)}")
-                    if isinstance(e, smtplib.SMTPAuthenticationError):
-                        break  # Don't try other configs if auth fails
-                except (TimeoutError, OSError, ConnectionError) as e:
-                    email_error = f"Connection timeout/error: {str(e)}"
-                    logger.error(f"Connection timeout/error with {config['host']}:{config['port']}: {str(e)}")
-                    continue  # Try next configuration
                 except Exception as e:
-                    email_error = f"Unexpected error: {str(e)}"
-                    logger.error(f"Unexpected error with {config['host']}:{config['port']}: {str(e)}")
+                    email_error = f"SMTP error on port {config['port']}: {str(e)}"
+                    logger.error(f"SMTP error on port {config['port']}: {str(e)}")
                     continue  # Try next configuration
-                finally:
-                    if server:
-                        try:
-                            server.quit()
-                        except:
-                            pass  # Ignore errors when closing
+            
+            # Reset to default config
+            app.config['MAIL_PORT'] = 465
+            app.config['MAIL_USE_SSL'] = True
+            app.config['MAIL_USE_TLS'] = False
+            mail.init_app(app)
             
             if not email_sent:
                 logger.error(f"All email sending attempts failed. Last error: {email_error}")
