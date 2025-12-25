@@ -270,9 +270,10 @@ def send_email():
             email_sent = False
             
             # Try multiple SMTP configurations for Hostinger/GoDaddy email
+            # Use shorter timeout to prevent worker timeouts (Gunicorn default is 30s)
             smtp_configs = [
-                {'host': 'smtpout.secureserver.net', 'port': 465, 'use_ssl': True, 'timeout': 15},
-                {'host': 'smtpout.secureserver.net', 'port': 587, 'use_ssl': False, 'timeout': 15},  # STARTTLS
+                {'host': 'smtpout.secureserver.net', 'port': 465, 'use_ssl': True, 'timeout': 5},
+                {'host': 'smtpout.secureserver.net', 'port': 587, 'use_ssl': False, 'timeout': 5},  # STARTTLS
             ]
             
             for config in smtp_configs:
@@ -294,16 +295,19 @@ def send_email():
                     email_sent = True
                     break
                     
-                except smtplib.SMTPAuthenticationError as e:
-                    email_error = f"Authentication failed: {str(e)}"
-                    logger.error(f"SMTP Authentication error with {config['host']}:{config['port']}: {str(e)}")
-                    break  # Don't try other configs if auth fails
-                except smtplib.SMTPException as e:
+                except (smtplib.SMTPAuthenticationError, smtplib.SMTPException) as e:
                     email_error = f"SMTP error: {str(e)}"
                     logger.error(f"SMTP error with {config['host']}:{config['port']}: {str(e)}")
+                    if isinstance(e, smtplib.SMTPAuthenticationError):
+                        break  # Don't try other configs if auth fails
+                except (TimeoutError, OSError, ConnectionError) as e:
+                    email_error = f"Connection timeout/error: {str(e)}"
+                    logger.error(f"Connection timeout/error with {config['host']}:{config['port']}: {str(e)}")
+                    continue  # Try next configuration
                 except Exception as e:
-                    email_error = f"Connection error: {str(e)}"
-                    logger.error(f"Connection error with {config['host']}:{config['port']}: {str(e)}")
+                    email_error = f"Unexpected error: {str(e)}"
+                    logger.error(f"Unexpected error with {config['host']}:{config['port']}: {str(e)}")
+                    continue  # Try next configuration
                 finally:
                     if server:
                         try:
