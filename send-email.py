@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
@@ -50,14 +50,9 @@ def initialize_server():
             logger.error(f"Failed to initialize database pool: {str(e)}")
             raise
         
-        # Initialize email server connection
-        try:
-            with smtplib.SMTP_SSL('smtpout.secureserver.net', 465) as server:
-                server.login(OUTLOOK_USER, OUTLOOK_PASS)
-            logger.info("Email server connection verified")
-        except Exception as e:
-            logger.error(f"Failed to initialize email server: {str(e)}")
-            raise
+        # Email server connection is tested lazily when actually sending emails
+        # This prevents blocking during initialization if email server is unreachable
+        logger.info("Email server will be tested on first use")
         
         is_server_initialized = True
         logger.info("Server initialization completed")
@@ -130,8 +125,18 @@ def save_order_to_db(order_data):
 
 @app.route('/')
 def home():
-    # Initialize server when main domain is accessed
-    initialize_server()
+    # Initialize server when main domain is accessed (non-blocking)
+    try:
+        initialize_server()
+    except Exception as e:
+        logger.error(f"Initialization error: {str(e)}")
+        # Still return response even if initialization fails
+        return jsonify({
+            "message": "Server is running but initialization had issues",
+            "status": "partial",
+            "error": str(e),
+            "initialized": is_server_initialized
+        }), 200
     
     # Get the referrer to check if request came from main domain
     referrer = request.headers.get('Referer', '')
@@ -152,8 +157,12 @@ def send_email():
     if request.method == 'OPTIONS':
         return '', 200
         
-    # Initialize server if not already initialized
-    initialize_server()
+    # Initialize server if not already initialized (non-blocking)
+    try:
+        initialize_server()
+    except Exception as e:
+        logger.error(f"Initialization error in send_email: {str(e)}")
+        # Continue anyway - database might still work
     
     # Check if request is from main domain
     origin = request.headers.get('Origin', '')
@@ -221,15 +230,22 @@ def send_email():
         msg['From'] = OUTLOOK_USER
         msg['To'] = OUTLOOK_USER
 
-        # Send email
+        # Send email with timeout to prevent blocking
         try:
-            with smtplib.SMTP_SSL('smtpout.secureserver.net', 465) as server:
+            # Add timeout to prevent indefinite blocking (10 seconds)
+            with smtplib.SMTP_SSL('smtpout.secureserver.net', 465, timeout=10) as server:
                 server.login(OUTLOOK_USER, OUTLOOK_PASS)
                 server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
             logger.info("Email sent successfully")
         except Exception as e:
             logger.error("Failed to send email: %s", str(e))
-            return jsonify({'error': 'Failed to send email'}), 500
+            # Don't fail the entire request if email fails - order is already saved
+            # Log the error but return success since order was saved
+            return jsonify({
+                'message': 'Order saved successfully, but email notification failed',
+                'orderId': order_id,
+                'warning': 'Email delivery failed, please check manually'
+            }), 200
 
         return jsonify({
             'message': 'Order saved and email sent successfully',
@@ -251,7 +267,17 @@ def health_check():
 @app.route('/wake')
 def wake_server():
     """Endpoint to wake up the server"""
-    initialize_server()
+    try:
+        initialize_server()
+    except Exception as e:
+        logger.error(f"Wake initialization error: {str(e)}")
+        return jsonify({
+            'status': 'awake',
+            'initialized': is_server_initialized,
+            'uptime': time.time() - server_start_time if server_start_time else 0,
+            'warning': f'Initialization had issues: {str(e)}'
+        }), 200
+    
     return jsonify({
         'status': 'awake',
         'initialized': is_server_initialized,
