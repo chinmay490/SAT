@@ -8,6 +8,9 @@ import uuid
 import time
 import os
 import threading
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -157,76 +160,96 @@ def save_order_to_db(order_data):
         logger.error("Error saving order to database: %s", str(e))
         raise
 
+def send_email_direct(email_subject, summary, order_id):
+    """Send email directly using smtplib with proper timeout handling"""
+    smtp_server = 'smtpout.secureserver.net'
+    smtp_port_ssl = 465
+    smtp_port_tls = 587
+    smtp_username = 'enquiry@shardaautotraders.com'
+    smtp_password = 'ShardaAutoTraders#99223339'
+    email_from = 'enquiry@shardaautotraders.com'
+    email_to = EMAIL_TO
+    
+    # Try SSL first (port 465), then TLS (port 587)
+    smtp_configs = [
+        {'port': smtp_port_ssl, 'use_ssl': True, 'use_tls': False, 'name': 'SSL'},
+        {'port': smtp_port_tls, 'use_ssl': False, 'use_tls': True, 'name': 'TLS'},
+    ]
+    
+    email_sent = False
+    last_error = None
+    
+    for config in smtp_configs:
+        try:
+            logger.info(f"Attempting email send via SMTP {config['name']} on port {config['port']}")
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = email_from
+            msg['To'] = email_to
+            msg['Subject'] = email_subject
+            msg.attach(MIMEText(summary, 'plain'))
+            
+            # Connect with timeout
+            timeout = 10  # 10 second timeout
+            start_time = time.time()
+            
+            if config['use_ssl']:
+                # Use SSL connection
+                server = smtplib.SMTP_SSL(smtp_server, config['port'], timeout=timeout)
+            else:
+                # Use TLS connection
+                server = smtplib.SMTP(smtp_server, config['port'], timeout=timeout)
+                server.starttls()
+            
+            # Login and send
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+            server.quit()
+            
+            elapsed = time.time() - start_time
+            logger.info(f"Email sent successfully via SMTP {config['name']} on port {config['port']} in {elapsed:.2f}s")
+            email_sent = True
+            break
+            
+        except smtplib.SMTPException as e:
+            last_error = f"SMTP {config['name']} error on port {config['port']}: {str(e)}"
+            logger.error(f"SMTP {config['name']} error on port {config['port']}: {str(e)}")
+            try:
+                if 'server' in locals():
+                    server.quit()
+            except:
+                pass
+            continue
+        except Exception as e:
+            last_error = f"Connection error on port {config['port']}: {str(e)}"
+            logger.error(f"Connection error on port {config['port']}: {str(e)}")
+            try:
+                if 'server' in locals():
+                    server.quit()
+            except:
+                pass
+            continue
+    
+    if not email_sent:
+        logger.error(f"All email sending attempts failed for order {order_id}. Last error: {last_error}")
+        return False
+    else:
+        logger.info(f"Email notification sent successfully for order {order_id}")
+        return True
+
 def send_email_async(email_subject, summary, order_id):
     """Send email in a background thread with timeout protection"""
     def send_with_timeout():
-        # Ensure Flask app context is available in the thread
-        with app.app_context():
-            try:
-                # Set a timeout for the entire email sending operation
-                email_timeout = 15  # 15 seconds max
-                
-                # Try multiple SMTP configurations
-                smtp_configs = [
-                    {'port': 465, 'use_ssl': True, 'use_tls': False},
-                    {'port': 587, 'use_ssl': False, 'use_tls': True},
-                ]
-                
-                email_sent = False
-                last_error = None
-                
-                for config in smtp_configs:
-                    try:
-                        logger.info(f"Attempting email send via SMTP port {config['port']} (SSL: {config['use_ssl']}, TLS: {config['use_tls']})")
-                        
-                        # Temporarily update mail config for this attempt
-                        app.config['MAIL_PORT'] = config['port']
-                        app.config['MAIL_USE_SSL'] = config['use_ssl']
-                        app.config['MAIL_USE_TLS'] = config['use_tls']
-                        app.config['MAIL_TIMEOUT'] = email_timeout
-                        
-                        # Reinitialize mail with new config
-                        mail.init_app(app)
-                        
-                        # Create and send message
-                        msg = Message(
-                            subject=email_subject,
-                            recipients=[EMAIL_TO],
-                            body=summary
-                        )
-                        
-                        # Use a timeout wrapper
-                        start_time = time.time()
-                        mail.send(msg)
-                        elapsed = time.time() - start_time
-                        
-                        if elapsed > email_timeout:
-                            raise TimeoutError(f"Email sending took {elapsed:.2f}s, exceeding timeout of {email_timeout}s")
-                        
-                        logger.info(f"Email sent successfully via SMTP port {config['port']} in {elapsed:.2f}s")
-                        email_sent = True
-                        break
-                        
-                    except Exception as e:
-                        last_error = f"SMTP error on port {config['port']}: {str(e)}"
-                        logger.error(f"SMTP error on port {config['port']}: {str(e)}")
-                        # Continue to next configuration
-                        continue
-                
-                # Reset to default config
-                app.config['MAIL_PORT'] = 465
-                app.config['MAIL_USE_SSL'] = True
-                app.config['MAIL_USE_TLS'] = False
-                app.config['MAIL_TIMEOUT'] = 10
-                mail.init_app(app)
-                
-                if not email_sent:
-                    logger.error(f"All email sending attempts failed for order {order_id}. Last error: {last_error}")
-                else:
-                    logger.info(f"Email notification sent successfully for order {order_id}")
-                    
-            except Exception as e:
-                logger.error(f"Error in background email sending for order {order_id}: {str(e)}", exc_info=True)
+        try:
+            # Use direct SMTP sending with proper timeout handling
+            success = send_email_direct(email_subject, summary, order_id)
+            if success:
+                logger.info(f"Background email sending completed successfully for order {order_id}")
+            else:
+                logger.warning(f"Background email sending failed for order {order_id}")
+        except Exception as e:
+            logger.error(f"Error in background email sending for order {order_id}: {str(e)}", exc_info=True)
     
     # Start email sending in a background thread
     thread = threading.Thread(target=send_with_timeout, daemon=True)
@@ -406,6 +429,45 @@ def wake_server():
         'initialized': is_server_initialized,
         'uptime': time.time() - server_start_time if server_start_time else 0
     })
+
+@app.route('/test-email', methods=['GET', 'POST'])
+def test_email():
+    """Test endpoint to verify email sending is working"""
+    try:
+        test_subject = 'Test Email from SAT Server'
+        test_body = f"""This is a test email from the SAT server.
+
+Server Status:
+- Initialized: {is_server_initialized}
+- Uptime: {time.time() - server_start_time if server_start_time else 0:.2f} seconds
+- Timestamp: {datetime.now().isoformat()}
+
+If you receive this email, the email sending functionality is working correctly.
+"""
+        test_order_id = f"test-{uuid.uuid4()}"
+        
+        # Try sending synchronously for testing (so we can return the result)
+        success = send_email_direct(test_subject, test_body, test_order_id)
+        
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': 'Test email sent successfully. Please check your inbox.',
+                'orderId': test_order_id
+            }), 200
+        else:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Test email could not be sent. Check server logs for details.',
+                'orderId': test_order_id
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error in test_email: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'Error testing email: {str(e)}'
+        }), 500
 
 # Global error handler to ensure CORS headers on all errors
 # Note: flask-cors should handle this, but we add as backup if not present
