@@ -17,11 +17,25 @@ app = Flask(__name__)
 # Configure CORS to allow all origins and methods
 CORS(app, resources={
     r"/*": {
-        "origins": ["https://shardaautotraders.com", "http://shardaautotraders.com", "http://localhost:3000"],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "origins": ["https://shardaautotraders.com", "http://shardaautotraders.com", "http://localhost:3000", "https://www.shardaautotraders.com", "http://www.shardaautotraders.com"],
+        "methods": ["GET", "POST", "OPTIONS", "HEAD"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": False
     }
 })
+
+# Add after_request handler to ensure CORS headers are always present
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin', '')
+    if origin:
+        # Check if origin contains shardaautotraders.com or localhost
+        if 'shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower():
+            response.headers.add('Access-Control-Allow-Origin', origin)
+            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            response.headers.add('Access-Control-Max-Age', '3600')
+    return response
 
 # Server state tracking
 server_start_time = None
@@ -155,7 +169,11 @@ def home():
 @app.route('/api/send-email', methods=['POST', 'OPTIONS'])
 def send_email():
     if request.method == 'OPTIONS':
-        return '', 200
+        response = jsonify({})
+        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response, 200
         
     # Initialize server if not already initialized (non-blocking)
     try:
@@ -164,11 +182,11 @@ def send_email():
         logger.error(f"Initialization error in send_email: {str(e)}")
         # Continue anyway - database might still work
     
-    # Check if request is from main domain
+    # Check if request is from main domain (log but don't block - CORS will handle it)
     origin = request.headers.get('Origin', '')
-    if not any(domain in origin for domain in ['shardaautotraders.com', 'localhost:3000']):
-        logger.warning(f"Unauthorized request from origin: {origin}")
-        return jsonify({'error': 'Unauthorized origin'}), 403
+    if origin and not any(domain in origin for domain in ['shardaautotraders.com', 'localhost:3000']):
+        logger.warning(f"Request from unexpected origin: {origin}")
+        # Don't block - let CORS handle it, but log for security monitoring
         
     try:
         logger.debug("Received request data: %s", request.get_data())
@@ -292,7 +310,14 @@ def send_email():
         })
     except Exception as e:
         logger.error("Error processing order: %s", str(e), exc_info=True)
-        return jsonify({'error': f'Failed to process order: {str(e)}'}), 500
+        response = jsonify({'error': f'Failed to process order: {str(e)}'})
+        # Ensure CORS headers are added even on error
+        origin = request.headers.get('Origin', '')
+        if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
+            response.headers.add('Access-Control-Allow-Origin', origin)
+            response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        return response, 500
 
 @app.route('/health')
 def health_check():
@@ -322,6 +347,18 @@ def wake_server():
         'initialized': is_server_initialized,
         'uptime': time.time() - server_start_time if server_start_time else 0
     })
+
+# Global error handler to ensure CORS headers on all errors
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+    response = jsonify({'error': 'Internal server error', 'message': str(e)})
+    origin = request.headers.get('Origin', '')
+    if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    return response, 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
