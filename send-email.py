@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
 import logging
@@ -25,12 +25,13 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      supports_credentials=False)
 
-# Add after_request handler to ensure CORS headers are always present (even on errors)
+# Add after_request handler to ensure CORS headers are present on errors
+# Only add if flask-cors didn't already add them
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin', '')
-    # Always add CORS headers if origin matches
-    if origin:
+    # Only add CORS headers if they're not already present (to avoid duplicates)
+    if origin and 'Access-Control-Allow-Origin' not in response.headers:
         allowed_origins = ["https://shardaautotraders.com", "http://shardaautotraders.com", 
                           "http://localhost:3000", "https://www.shardaautotraders.com", 
                           "http://www.shardaautotraders.com"]
@@ -173,23 +174,10 @@ def home():
     })
 
 @app.route('/api/send-email', methods=['POST', 'OPTIONS'])
-@cross_origin(origins=["https://shardaautotraders.com", "http://shardaautotraders.com", 
-                      "http://localhost:3000", "https://www.shardaautotraders.com", 
-                      "http://www.shardaautotraders.com"],
-             methods=["POST", "OPTIONS"],
-             allow_headers=["Content-Type", "Authorization"],
-             supports_credentials=False)
 def send_email():
     if request.method == 'OPTIONS':
-        # Handle preflight request
-        origin = request.headers.get('Origin', '')
-        response = jsonify({})
-        if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            response.headers['Access-Control-Max-Age'] = '3600'
-        return response, 200
+        # Handle preflight request - flask-cors will add headers automatically
+        return '', 200
         
     # Initialize server if not already initialized (non-blocking)
     try:
@@ -327,12 +315,13 @@ def send_email():
     except Exception as e:
         logger.error("Error processing order: %s", str(e), exc_info=True)
         response = jsonify({'error': f'Failed to process order: {str(e)}'})
-        # Ensure CORS headers are added even on error
+        # Ensure CORS headers are added even on error (only if not already present)
         origin = request.headers.get('Origin', '')
-        if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        if origin and 'Access-Control-Allow-Origin' not in response.headers:
+            if 'shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower():
+                response.headers['Access-Control-Allow-Origin'] = origin
+                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response, 500
 
 @app.route('/health')
@@ -365,15 +354,18 @@ def wake_server():
     })
 
 # Global error handler to ensure CORS headers on all errors
+# Note: flask-cors should handle this, but we add as backup if not present
 @app.errorhandler(500)
 def handle_500_error(e):
     logger.error(f"500 error: {str(e)}", exc_info=True)
     response = jsonify({'error': 'Internal server error', 'message': str(e) if hasattr(e, '__str__') else 'Unknown error'})
     origin = request.headers.get('Origin', '')
-    if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
-        response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    # Only add if not already present (flask-cors might have added it)
+    if origin and 'Access-Control-Allow-Origin' not in response.headers:
+        if 'shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower():
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response, 500
 
 @app.errorhandler(Exception)
@@ -381,10 +373,12 @@ def handle_exception(e):
     logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
     response = jsonify({'error': 'Internal server error', 'message': str(e) if hasattr(e, '__str__') else 'Unknown error'})
     origin = request.headers.get('Origin', '')
-    if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
-        response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    # Only add if not already present (flask-cors might have added it)
+    if origin and 'Access-Control-Allow-Origin' not in response.headers:
+        if 'shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower():
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response, 500
 
 if __name__ == '__main__':
