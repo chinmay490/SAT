@@ -25,23 +25,27 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      supports_credentials=False)
 
-# Add after_request handler to ensure CORS headers are present on errors
-# Only add if flask-cors didn't already add them
+# Add after_request handler to ensure CORS headers are ALWAYS present
 @app.after_request
 def after_request(response):
     origin = request.headers.get('Origin', '')
-    # Only add CORS headers if they're not already present (to avoid duplicates)
-    if origin and 'Access-Control-Allow-Origin' not in response.headers:
+    logger.debug(f"after_request: Origin={origin}, Status={response.status_code}")
+    # Always add CORS headers if origin matches (even if already present, we'll overwrite to ensure it's correct)
+    if origin:
         allowed_origins = ["https://shardaautotraders.com", "http://shardaautotraders.com", 
                           "http://localhost:3000", "https://www.shardaautotraders.com", 
                           "http://www.shardaautotraders.com"]
         # Check if origin matches any allowed origin (case-insensitive)
         origin_lower = origin.lower()
         if any(allowed.lower() in origin_lower or origin_lower in allowed.lower() for allowed in allowed_origins):
+            # Always set these headers to ensure they're present
             response.headers['Access-Control-Allow-Origin'] = origin
             response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
             response.headers['Access-Control-Max-Age'] = '3600'
+            logger.debug(f"Added CORS headers for origin: {origin}")
+    else:
+        logger.warning("No Origin header in request")
     return response
 
 # Server state tracking
@@ -175,24 +179,33 @@ def home():
 
 @app.route('/api/send-email', methods=['POST', 'OPTIONS'])
 def send_email():
+    # Handle preflight OPTIONS request first
     if request.method == 'OPTIONS':
-        # Handle preflight request - flask-cors will add headers automatically
-        return '', 200
-        
-    # Initialize server if not already initialized (non-blocking)
-    try:
-        initialize_server()
-    except Exception as e:
-        logger.error(f"Initialization error in send_email: {str(e)}")
-        # Continue anyway - database might still work
+        response = jsonify({})
+        origin = request.headers.get('Origin', '')
+        if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            response.headers['Access-Control-Max-Age'] = '3600'
+        return response, 200
     
-    # Check if request is from main domain (log but don't block - CORS will handle it)
-    origin = request.headers.get('Origin', '')
-    if origin and not any(domain in origin for domain in ['shardaautotraders.com', 'localhost:3000']):
-        logger.warning(f"Request from unexpected origin: {origin}")
-        # Don't block - let CORS handle it, but log for security monitoring
-        
+    # Wrap everything in try-except to ensure we always return a response with CORS headers
     try:
+        # Initialize server if not already initialized (non-blocking)
+        try:
+            initialize_server()
+        except Exception as e:
+            logger.error(f"Initialization error in send_email: {str(e)}")
+            # Continue anyway - database might still work
+        
+        # Check if request is from main domain (log but don't block - CORS will handle it)
+        origin = request.headers.get('Origin', '')
+        if origin and not any(domain in origin for domain in ['shardaautotraders.com', 'localhost:3000']):
+            logger.warning(f"Request from unexpected origin: {origin}")
+            # Don't block - let CORS handle it, but log for security monitoring
+            
+        try:
         logger.debug("Received request data: %s", request.get_data())
         data = request.get_json()
         logger.debug("Parsed JSON data: %s", data)
@@ -308,20 +321,30 @@ def send_email():
                 'emailError': email_error  # Include error for debugging
             }), 200
 
-        return jsonify({
-            'message': 'Order saved and email sent successfully',
-            'orderId': order_id
-        })
-    except Exception as e:
-        logger.error("Error processing order: %s", str(e), exc_info=True)
-        response = jsonify({'error': f'Failed to process order: {str(e)}'})
-        # Ensure CORS headers are added even on error (only if not already present)
-        origin = request.headers.get('Origin', '')
-        if origin and 'Access-Control-Allow-Origin' not in response.headers:
-            if 'shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower():
+            return jsonify({
+                'message': 'Order saved and email sent successfully',
+                'orderId': order_id
+            })
+        except Exception as e:
+            logger.error("Error processing order: %s", str(e), exc_info=True)
+            response = jsonify({'error': f'Failed to process order: {str(e)}'})
+            # Ensure CORS headers are added even on error
+            origin = request.headers.get('Origin', '')
+            if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
                 response.headers['Access-Control-Allow-Origin'] = origin
                 response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
                 response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            return response, 500
+    except Exception as e:
+        # Catch any exception that might occur before the inner try block
+        logger.error("Outer exception in send_email: %s", str(e), exc_info=True)
+        response = jsonify({'error': f'Server error: {str(e)}'})
+        # Always add CORS headers
+        origin = request.headers.get('Origin', '')
+        if origin and ('shardaautotraders.com' in origin.lower() or 'localhost' in origin.lower()):
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, HEAD'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response, 500
 
 @app.route('/health')
