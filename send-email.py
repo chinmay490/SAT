@@ -206,120 +206,120 @@ def send_email():
             # Don't block - let CORS handle it, but log for security monitoring
             
         try:
-        logger.debug("Received request data: %s", request.get_data())
-        data = request.get_json()
-        logger.debug("Parsed JSON data: %s", data)
+            logger.debug("Received request data: %s", request.get_data())
+            data = request.get_json()
+            logger.debug("Parsed JSON data: %s", data)
 
-        if not data:
-            logger.error("No data provided in request")
-            return jsonify({'error': 'No data provided'}), 400
+            if not data:
+                logger.error("No data provided in request")
+                return jsonify({'error': 'No data provided'}), 400
 
-        # Extract order data from the request
-        order_data = data.get('orderData', {})
-        if not order_data:
-            logger.error("No order data provided in request")
-            return jsonify({'error': 'No order data provided'}), 400
+            # Extract order data from the request
+            order_data = data.get('orderData', {})
+            if not order_data:
+                logger.error("No order data provided in request")
+                return jsonify({'error': 'No order data provided'}), 400
 
-        # Validate required fields
-        required_fields = ['customerName', 'customerEmail', 'customerPhone']
-        missing_fields = [field for field in required_fields if not order_data.get(field)]
-        if missing_fields:
-            logger.error("Missing required fields: %s", missing_fields)
-            return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
+            # Validate required fields
+            required_fields = ['customerName', 'customerEmail', 'customerPhone']
+            missing_fields = [field for field in required_fields if not order_data.get(field)]
+            if missing_fields:
+                logger.error("Missing required fields: %s", missing_fields)
+                return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
 
-        # Save order to database
-        try:
-            order_id = save_order_to_db(order_data)
-            logger.info("Order saved with ID: %s", order_id)
-        except Exception as e:
-            logger.error("Failed to save order to database: %s", str(e))
-            return jsonify({'error': 'Failed to save order to database'}), 500
-
-        # Format the email content
-        summary = "New Order Summary:\n\n"
-        summary += "Product Details:\n"
-        summary += f"Product Class: {order_data.get('productclass', 'N/A')}\n"
-        summary += f"Product Type: {order_data.get('productType', 'N/A')}\n"
-        summary += f"Sub Product Type: {order_data.get('subproducttype', 'N/A')}\n"
-        summary += f"Brand/Material: {order_data.get('brand_or_material', 'N/A')}\n"
-        summary += f"Classification: {order_data.get('classification', 'N/A')}\n"
-        summary += f"Quantity: {order_data.get('quantity', 'N/A')}\n\n"
-
-        if order_data.get('additionalInfo'):
-            summary += "Additional Specifications:\n"
-            for key, value in order_data['additionalInfo'].items():
-                summary += f"{key}: {value}\n"
-            summary += "\n"
-
-        summary += "Customer Details:\n"
-        summary += f"Name/Company: {order_data.get('customerName', 'N/A')}\n"
-        summary += f"Email: {order_data.get('customerEmail', 'N/A')}\n"
-        summary += f"Phone: {order_data.get('customerPhone', 'N/A')}\n"
-        summary += f"Delivery Address: {order_data.get('customerlocation', 'N/A')}\n"
-        summary += f"Delivery Date: {order_data.get('deliveryDate', 'N/A')}\n"
-
-        logger.debug("Formatted email content: %s", summary)
-
-        msg = MIMEText(summary)
-        msg['Subject'] = f'New Order from {order_data.get("customerName", "Customer")}'
-        msg['From'] = OUTLOOK_USER
-        msg['To'] = OUTLOOK_USER
-
-        # Send email with timeout to prevent blocking
-        email_error = None
-        email_sent = False
-        
-        # Try multiple SMTP configurations for Hostinger/GoDaddy email
-        smtp_configs = [
-            {'host': 'smtpout.secureserver.net', 'port': 465, 'use_ssl': True, 'timeout': 15},
-            {'host': 'smtpout.secureserver.net', 'port': 587, 'use_ssl': False, 'timeout': 15},  # STARTTLS
-        ]
-        
-        for config in smtp_configs:
-            server = None
+            # Save order to database
             try:
-                logger.info(f"Attempting email send via {config['host']}:{config['port']} (SSL: {config['use_ssl']})")
-                
-                if config['use_ssl']:
-                    server = smtplib.SMTP_SSL(config['host'], config['port'], timeout=config['timeout'])
-                else:
-                    server = smtplib.SMTP(config['host'], config['port'], timeout=config['timeout'])
-                    if config['port'] == 587:
-                        server.starttls()
-                
-                server.login(OUTLOOK_USER, OUTLOOK_PASS)
-                server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
-                
-                logger.info(f"Email sent successfully via {config['host']}:{config['port']}")
-                email_sent = True
-                break
-                
-            except smtplib.SMTPAuthenticationError as e:
-                email_error = f"Authentication failed: {str(e)}"
-                logger.error(f"SMTP Authentication error with {config['host']}:{config['port']}: {str(e)}")
-                break  # Don't try other configs if auth fails
-            except smtplib.SMTPException as e:
-                email_error = f"SMTP error: {str(e)}"
-                logger.error(f"SMTP error with {config['host']}:{config['port']}: {str(e)}")
+                order_id = save_order_to_db(order_data)
+                logger.info("Order saved with ID: %s", order_id)
             except Exception as e:
-                email_error = f"Connection error: {str(e)}"
-                logger.error(f"Connection error with {config['host']}:{config['port']}: {str(e)}")
-            finally:
-                if server:
-                    try:
-                        server.quit()
-                    except:
-                        pass  # Ignore errors when closing
-        
-        if not email_sent:
-            logger.error(f"All email sending attempts failed. Last error: {email_error}")
-            # Don't fail the entire request if email fails - order is already saved
-            return jsonify({
-                'message': 'Order saved successfully, but email notification failed',
-                'orderId': order_id,
-                'warning': 'Email delivery failed, please check manually',
-                'emailError': email_error  # Include error for debugging
-            }), 200
+                logger.error("Failed to save order to database: %s", str(e))
+                return jsonify({'error': 'Failed to save order to database'}), 500
+
+            # Format the email content
+            summary = "New Order Summary:\n\n"
+            summary += "Product Details:\n"
+            summary += f"Product Class: {order_data.get('productclass', 'N/A')}\n"
+            summary += f"Product Type: {order_data.get('productType', 'N/A')}\n"
+            summary += f"Sub Product Type: {order_data.get('subproducttype', 'N/A')}\n"
+            summary += f"Brand/Material: {order_data.get('brand_or_material', 'N/A')}\n"
+            summary += f"Classification: {order_data.get('classification', 'N/A')}\n"
+            summary += f"Quantity: {order_data.get('quantity', 'N/A')}\n\n"
+
+            if order_data.get('additionalInfo'):
+                summary += "Additional Specifications:\n"
+                for key, value in order_data['additionalInfo'].items():
+                    summary += f"{key}: {value}\n"
+                summary += "\n"
+
+            summary += "Customer Details:\n"
+            summary += f"Name/Company: {order_data.get('customerName', 'N/A')}\n"
+            summary += f"Email: {order_data.get('customerEmail', 'N/A')}\n"
+            summary += f"Phone: {order_data.get('customerPhone', 'N/A')}\n"
+            summary += f"Delivery Address: {order_data.get('customerlocation', 'N/A')}\n"
+            summary += f"Delivery Date: {order_data.get('deliveryDate', 'N/A')}\n"
+
+            logger.debug("Formatted email content: %s", summary)
+
+            msg = MIMEText(summary)
+            msg['Subject'] = f'New Order from {order_data.get("customerName", "Customer")}'
+            msg['From'] = OUTLOOK_USER
+            msg['To'] = OUTLOOK_USER
+
+            # Send email with timeout to prevent blocking
+            email_error = None
+            email_sent = False
+            
+            # Try multiple SMTP configurations for Hostinger/GoDaddy email
+            smtp_configs = [
+                {'host': 'smtpout.secureserver.net', 'port': 465, 'use_ssl': True, 'timeout': 15},
+                {'host': 'smtpout.secureserver.net', 'port': 587, 'use_ssl': False, 'timeout': 15},  # STARTTLS
+            ]
+            
+            for config in smtp_configs:
+                server = None
+                try:
+                    logger.info(f"Attempting email send via {config['host']}:{config['port']} (SSL: {config['use_ssl']})")
+                    
+                    if config['use_ssl']:
+                        server = smtplib.SMTP_SSL(config['host'], config['port'], timeout=config['timeout'])
+                    else:
+                        server = smtplib.SMTP(config['host'], config['port'], timeout=config['timeout'])
+                        if config['port'] == 587:
+                            server.starttls()
+                    
+                    server.login(OUTLOOK_USER, OUTLOOK_PASS)
+                    server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
+                    
+                    logger.info(f"Email sent successfully via {config['host']}:{config['port']}")
+                    email_sent = True
+                    break
+                    
+                except smtplib.SMTPAuthenticationError as e:
+                    email_error = f"Authentication failed: {str(e)}"
+                    logger.error(f"SMTP Authentication error with {config['host']}:{config['port']}: {str(e)}")
+                    break  # Don't try other configs if auth fails
+                except smtplib.SMTPException as e:
+                    email_error = f"SMTP error: {str(e)}"
+                    logger.error(f"SMTP error with {config['host']}:{config['port']}: {str(e)}")
+                except Exception as e:
+                    email_error = f"Connection error: {str(e)}"
+                    logger.error(f"Connection error with {config['host']}:{config['port']}: {str(e)}")
+                finally:
+                    if server:
+                        try:
+                            server.quit()
+                        except:
+                            pass  # Ignore errors when closing
+            
+            if not email_sent:
+                logger.error(f"All email sending attempts failed. Last error: {email_error}")
+                # Don't fail the entire request if email fails - order is already saved
+                return jsonify({
+                    'message': 'Order saved successfully, but email notification failed',
+                    'orderId': order_id,
+                    'warning': 'Email delivery failed, please check manually',
+                    'emailError': email_error  # Include error for debugging
+                }), 200
 
             return jsonify({
                 'message': 'Order saved and email sent successfully',
