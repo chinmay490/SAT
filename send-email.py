@@ -231,20 +231,59 @@ def send_email():
         msg['To'] = OUTLOOK_USER
 
         # Send email with timeout to prevent blocking
-        try:
-            # Add timeout to prevent indefinite blocking (10 seconds)
-            with smtplib.SMTP_SSL('smtpout.secureserver.net', 465, timeout=10) as server:
+        email_error = None
+        email_sent = False
+        
+        # Try multiple SMTP configurations for Hostinger/GoDaddy email
+        smtp_configs = [
+            {'host': 'smtpout.secureserver.net', 'port': 465, 'use_ssl': True, 'timeout': 15},
+            {'host': 'smtpout.secureserver.net', 'port': 587, 'use_ssl': False, 'timeout': 15},  # STARTTLS
+        ]
+        
+        for config in smtp_configs:
+            server = None
+            try:
+                logger.info(f"Attempting email send via {config['host']}:{config['port']} (SSL: {config['use_ssl']})")
+                
+                if config['use_ssl']:
+                    server = smtplib.SMTP_SSL(config['host'], config['port'], timeout=config['timeout'])
+                else:
+                    server = smtplib.SMTP(config['host'], config['port'], timeout=config['timeout'])
+                    if config['port'] == 587:
+                        server.starttls()
+                
                 server.login(OUTLOOK_USER, OUTLOOK_PASS)
                 server.sendmail(OUTLOOK_USER, OUTLOOK_USER, msg.as_string())
-            logger.info("Email sent successfully")
-        except Exception as e:
-            logger.error("Failed to send email: %s", str(e))
+                
+                logger.info(f"Email sent successfully via {config['host']}:{config['port']}")
+                email_sent = True
+                break
+                
+            except smtplib.SMTPAuthenticationError as e:
+                email_error = f"Authentication failed: {str(e)}"
+                logger.error(f"SMTP Authentication error with {config['host']}:{config['port']}: {str(e)}")
+                break  # Don't try other configs if auth fails
+            except smtplib.SMTPException as e:
+                email_error = f"SMTP error: {str(e)}"
+                logger.error(f"SMTP error with {config['host']}:{config['port']}: {str(e)}")
+            except Exception as e:
+                email_error = f"Connection error: {str(e)}"
+                logger.error(f"Connection error with {config['host']}:{config['port']}: {str(e)}")
+            finally:
+                if server:
+                    try:
+                        server.quit()
+                    except:
+                        pass  # Ignore errors when closing
+        
+        if not email_sent:
+            logger.error(f"All email sending attempts failed. Last error: {email_error}")
             # Don't fail the entire request if email fails - order is already saved
-            # Log the error but return success since order was saved
             return jsonify({
                 'message': 'Order saved successfully, but email notification failed',
                 'orderId': order_id,
-                'warning': 'Email delivery failed, please check manually'
+                'warning': 'Email delivery failed, please check manually',
+                'emailError': email_error  # Include error for debugging
             }), 200
 
         return jsonify({
