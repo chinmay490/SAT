@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
@@ -14,14 +14,28 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Configure CORS to allow all origins and methods
-CORS(app, resources={
-    r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
+
+ALLOWED_ORIGINS = {
+    'https://shardaautotraders.com',
+    'https://www.shardaautotraders.com',
+}
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '')
+    if origin in ALLOWED_ORIGINS:
+        response.headers['Access-Control-Allow-Origin'] = origin
+    else:
+        response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept'
+    return response
+
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        return make_response('', 204)
 
 # Hostinger MySQL — set in Render Environment, or edit values below
 # On Render: DB_HOST must be the REMOTE hostname from hPanel → Remote MySQL (not localhost)
@@ -106,11 +120,8 @@ def save_order_to_db(order_data):
 def home():
     return jsonify({"message": "Email server is running"})
 
-@app.route('/api/send-email', methods=['POST', 'OPTIONS'])
+@app.route('/api/send-email', methods=['POST'])
 def send_email():
-    if request.method == 'OPTIONS':
-        return '', 200
-
     try:
         logger.debug("Received request data: %s", request.get_data())
         data = request.get_json()
@@ -191,4 +202,5 @@ def send_email():
         return jsonify({'error': f'Failed to process order: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
