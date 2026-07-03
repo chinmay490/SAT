@@ -7,6 +7,7 @@ import pymysql
 from datetime import datetime
 import uuid
 import json
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -22,12 +23,13 @@ CORS(app, resources={
     }
 })
 
-# Hostinger MySQL configuration — replace with your hPanel database details
-DB_HOST = 'srv1856.hstgr.io'
-DB_PORT = 3306
-DB_USER = 'u813327138_Customer'
-DB_PASSWORD = 'Chinmay@0007'
-DB_NAME = 'u813327138_Database'
+# Hostinger MySQL — set in Render Environment, or edit values below
+# On Render: DB_HOST must be the REMOTE hostname from hPanel → Remote MySQL (not localhost)
+DB_HOST = os.environ.get('DB_HOST', 'srv1856.hstgr.io')
+DB_PORT = int(os.environ.get('DB_PORT', '3306'))
+DB_USER = os.environ.get('DB_USER', 'u813327138_Customer')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Chinmay@0007')
+DB_NAME = os.environ.get('DB_NAME', 'u813327138_Database')
 
 # Gmail credentials (use an App Password, not your real password)
 GMAIL_USER = 'chinmaymishra490@gmail.com'
@@ -41,6 +43,8 @@ def get_db_connection():
             user=DB_USER,
             password=DB_PASSWORD,
             database=DB_NAME,
+            charset='utf8mb4',
+            connect_timeout=15,
         )
         return conn
     except Exception as e:
@@ -73,7 +77,8 @@ def save_order_to_db(order_data):
             order_data.get('customerPhone', ''),
             order_data.get('customerEmail', ''),
             order_data.get('customerlocation', ''),
-            datetime.strptime(order_data.get('deliveryDate', ''), '%Y-%m-%d') if order_data.get('deliveryDate') else None
+            datetime.strptime(order_data.get('deliveryDate', ''), '%Y-%m-%d').date()
+            if order_data.get('deliveryDate') else None
         ]
 
         # Insert the order into the database
