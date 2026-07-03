@@ -3,12 +3,10 @@ from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
 import logging
-import mysql.connector
-from mysql.connector import Error
+import pymysql
 from datetime import datetime
 import uuid
 import json
-import os
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -24,20 +22,20 @@ CORS(app, resources={
     }
 })
 
-# Hostinger MySQL configuration (set these in your hosting environment)
-DB_HOST = os.environ.get('DB_HOST', 'srv1856.hstgr.io ')
-DB_PORT = int(os.environ.get('DB_PORT', '3306'))
-DB_USER = os.environ.get('DB_USER', 'u813327138_Customer')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Chinmay@0007')
-DB_NAME = os.environ.get('DB_NAME', 'u813327138_Database')
+# Hostinger MySQL configuration — replace with your hPanel database details
+DB_HOST = 'localhost'
+DB_PORT = 3306
+DB_USER = 'your_db_user'
+DB_PASSWORD = 'your_db_password'
+DB_NAME = 'your_db_name'
 
 # Gmail credentials (use an App Password, not your real password)
-GMAIL_USER = os.environ.get('GMAIL_USER', 'chinmaymishra490@gmail.com')
-GMAIL_PASS = os.environ.get('GMAIL_PASS', 'oegi lvvy xjll xomd')
+GMAIL_USER = 'chinmaymishra490@gmail.com'
+GMAIL_PASS = 'oegi lvvy xjll xomd'  # 16-char app password
 
 def get_db_connection():
     try:
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=DB_HOST,
             port=DB_PORT,
             user=DB_USER,
@@ -45,7 +43,7 @@ def get_db_connection():
             database=DB_NAME,
         )
         return conn
-    except Error as e:
+    except Exception as e:
         logger.error("Database connection error: %s", str(e))
         raise
 
@@ -54,12 +52,14 @@ def save_order_to_db(order_data):
         conn = get_db_connection()
         cur = conn.cursor()
 
+        # Generate a unique ID for the order
         order_id = str(uuid.uuid4())
 
         additional_info = order_data.get('additionalInfo', '')
         if isinstance(additional_info, dict):
             additional_info = json.dumps(additional_info)
 
+        # Prepare the order data
         order_values = [
             order_id,
             order_data.get('productclass', ''),
@@ -73,10 +73,10 @@ def save_order_to_db(order_data):
             order_data.get('customerPhone', ''),
             order_data.get('customerEmail', ''),
             order_data.get('customerlocation', ''),
-            datetime.strptime(order_data.get('deliveryDate', ''), '%Y-%m-%d').date()
-            if order_data.get('deliveryDate') else None
+            datetime.strptime(order_data.get('deliveryDate', ''), '%Y-%m-%d') if order_data.get('deliveryDate') else None
         ]
 
+        # Insert the order into the database
         cur.execute("""
             INSERT INTO `Order` (
                 id, productclass, productType, subproducttype, classification,
@@ -93,7 +93,7 @@ def save_order_to_db(order_data):
 
         logger.info("Order saved to database successfully")
         return order_id
-    except Error as e:
+    except Exception as e:
         logger.error("Error saving order to database: %s", str(e))
         raise
 
@@ -115,17 +115,20 @@ def send_email():
             logger.error("No data provided in request")
             return jsonify({'error': 'No data provided'}), 400
 
+        # Extract order data from the request
         order_data = data.get('orderData', {})
         if not order_data:
             logger.error("No order data provided in request")
             return jsonify({'error': 'No order data provided'}), 400
 
+        # Validate required fields
         required_fields = ['customerName', 'customerEmail', 'customerPhone']
         missing_fields = [field for field in required_fields if not order_data.get(field)]
         if missing_fields:
             logger.error("Missing required fields: %s", missing_fields)
             return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
 
+        # Save order to database
         try:
             order_id = save_order_to_db(order_data)
             logger.info("Order saved with ID: %s", order_id)
@@ -133,6 +136,7 @@ def send_email():
             logger.error("Failed to save order to database: %s", str(e))
             return jsonify({'error': 'Failed to save order to database'}), 500
 
+        # Format the email content
         summary = "New Order Summary:\n\n"
         summary += "Product Details:\n"
         summary += f"Product Class: {order_data.get('productclass', 'N/A')}\n"
@@ -144,12 +148,8 @@ def send_email():
 
         if order_data.get('additionalInfo'):
             summary += "Additional Specifications:\n"
-            additional_info = order_data['additionalInfo']
-            if isinstance(additional_info, dict):
-                for key, value in additional_info.items():
-                    summary += f"{key}: {value}\n"
-            else:
-                summary += f"{additional_info}\n"
+            for key, value in order_data['additionalInfo'].items():
+                summary += f"{key}: {value}\n"
             summary += "\n"
 
         summary += "Customer Details:\n"
@@ -166,6 +166,7 @@ def send_email():
         msg['From'] = GMAIL_USER
         msg['To'] = GMAIL_USER
 
+        # Send email
         try:
             with smtplib.SMTP('smtp.gmail.com', 587) as server:
                 server.starttls()
