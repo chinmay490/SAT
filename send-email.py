@@ -23,11 +23,11 @@ CORS(app, resources={
 })
 
 # Hostinger MySQL configuration — replace with your hPanel database details
-DB_HOST = 'localhost'
+DB_HOST = 'srv1856.hstgr.io'
 DB_PORT = 3306
-DB_USER = 'your_db_user'
-DB_PASSWORD = 'your_db_password'
-DB_NAME = 'your_db_name'
+DB_USER = 'u813327138_Customer'
+DB_PASSWORD = 'Chinmay@0007'
+DB_NAME = 'u813327138_Database'
 
 # Gmail credentials (use an App Password, not your real password)
 GMAIL_USER = 'chinmaymishra490@gmail.com'
