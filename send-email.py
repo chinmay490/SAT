@@ -8,6 +8,8 @@ from datetime import datetime
 import uuid
 import json
 import os
+import urllib.request
+import urllib.error
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -46,8 +48,65 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Chinmay@0007')
 DB_NAME = os.environ.get('DB_NAME', 'u813327138_Database')
 
 # Gmail credentials (use an App Password, not your real password)
-GMAIL_USER = 'chinmaymishra490@gmail.com'
-GMAIL_PASS = 'oegi lvvy xjll xomd'  # 16-char app password
+GMAIL_USER = os.environ.get('GMAIL_USER', 'chinmaymishra490@gmail.com')
+GMAIL_PASS = os.environ.get('GMAIL_PASS', 'oegi lvvy xjll xomd')
+# Brevo API key — required on Render FREE tier (SMTP ports 587/465 are blocked)
+# Sign up free at https://www.brevo.com → SMTP & API → API Keys
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+
+def send_email_via_brevo(subject, body, to_email, from_email, api_key):
+    """Send email over HTTPS (works on Render free tier)."""
+    payload = json.dumps({
+        'sender': {'name': 'Sharda Auto Traders', 'email': from_email},
+        'to': [{'email': to_email}],
+        'subject': subject,
+        'textContent': body,
+    }).encode('utf-8')
+    req = urllib.request.Request(
+        'https://api.brevo.com/v3/smtp/email',
+        data=payload,
+        headers={
+            'api-key': api_key,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            if resp.status not in (200, 201):
+                raise RuntimeError(f'Brevo API returned status {resp.status}')
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8', errors='replace')
+        raise RuntimeError(f'Brevo API error {e.code}: {error_body}') from e
+
+def send_email_via_smtp(subject, body, to_email, from_email, password):
+    """Gmail SMTP — only works on paid Render or local machine."""
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = from_email
+    msg['To'] = to_email
+    with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as server:
+        server.starttls()
+        server.login(from_email, password.replace(' ', ''))
+        server.sendmail(from_email, to_email, msg.as_string())
+
+def send_order_email(subject, body):
+    brevo_key = os.environ.get('BREVO_API_KEY', '').strip()
+    on_render = bool(os.environ.get('RENDER'))
+
+    if brevo_key:
+        logger.info('Sending email via Brevo API')
+        send_email_via_brevo(subject, body, GMAIL_USER, GMAIL_USER, brevo_key)
+        return
+
+    if on_render:
+        raise RuntimeError(
+            'SMTP is blocked on Render free tier. Add BREVO_API_KEY in Render Environment.'
+        )
+
+    logger.info('Sending email via Gmail SMTP (local)')
+    send_email_via_smtp(subject, body, GMAIL_USER, GMAIL_USER, GMAIL_PASS)
 
 def get_db_connection():
     try:
@@ -58,7 +117,9 @@ def get_db_connection():
             password=DB_PASSWORD,
             database=DB_NAME,
             charset='utf8mb4',
-            connect_timeout=15,
+            connect_timeout=5,
+            read_timeout=5,
+            write_timeout=5,
         )
         return conn
     except Exception as e:
@@ -144,13 +205,16 @@ def send_email():
             logger.error("Missing required fields: %s", missing_fields)
             return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
 
-        # Save order to database
+        # Save order to database (email still sent if DB is unavailable)
+        order_id = None
+        db_saved = False
         try:
             order_id = save_order_to_db(order_data)
+            db_saved = True
             logger.info("Order saved with ID: %s", order_id)
         except Exception as e:
+            order_id = str(uuid.uuid4())
             logger.error("Failed to save order to database: %s", str(e))
-            return jsonify({'error': 'Failed to save order to database'}), 500
 
         # Format the email content
         summary = "New Order Summary:\n\n"
@@ -177,26 +241,30 @@ def send_email():
 
         logger.debug("Formatted email content: %s", summary)
 
-        msg = MIMEText(summary)
-        msg['Subject'] = f'New Order from {order_data.get("customerName", "Customer")}'
-        msg['From'] = GMAIL_USER
-        msg['To'] = GMAIL_USER
-
-        # Send email
+        subject = f'New Order from {order_data.get("customerName", "Customer")}'
+        email_sent = False
+        email_error = None
         try:
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login(GMAIL_USER, GMAIL_PASS)
-                server.sendmail(GMAIL_USER, GMAIL_USER, msg.as_string())
+            send_order_email(subject, summary)
+            email_sent = True
             logger.info("Email sent successfully")
         except Exception as e:
-            logger.error("Failed to send email: %s", str(e))
-            return jsonify({'error': 'Failed to send email'}), 500
+            email_error = str(e)
+            logger.error("Failed to send email: %s", email_error)
 
+        if db_saved:
+            message = 'Order saved and email sent successfully' if email_sent else 'Order saved successfully'
+        else:
+            message = 'Order email sent successfully' if email_sent else 'Order could not be saved or emailed'
+
+        status_code = 200 if db_saved or email_sent else 500
         return jsonify({
-            'message': 'Order saved and email sent successfully',
-            'orderId': order_id
-        })
+            'message': message,
+            'orderId': order_id,
+            'dbSaved': db_saved,
+            'emailSent': email_sent,
+            'emailError': email_error,
+        }), status_code
     except Exception as e:
         logger.error("Error processing order: %s", str(e), exc_info=True)
         return jsonify({'error': f'Failed to process order: {str(e)}'}), 500
