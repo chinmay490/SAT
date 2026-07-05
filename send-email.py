@@ -48,12 +48,20 @@ DB_USER = os.environ.get('DB_USER', 'u813327138_Customer')
 DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Chinmay@0007')
 DB_NAME = os.environ.get('DB_NAME', 'u813327138_Database')
 
-# Gmail credentials (use an App Password, not your real password)
-GMAIL_USER = os.environ.get('GMAIL_USER', 'chinmaymishra490@gmail.com')
-GMAIL_PASS = os.environ.get('GMAIL_PASS', 'oegi lvvy xjll xomd')
+# Email — set in Render Environment (Brevo sender must be verified in Brevo dashboard)
+NOTIFY_EMAIL = os.environ.get('NOTIFY_EMAIL', 'enquiry@shardaautotraders.com')
+BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', 'enquiry@shardaautotraders.com')
+# Gmail SMTP fallback for local dev only (not used on Render when BREVO_API_KEY is set)
+GMAIL_USER = os.environ.get('GMAIL_USER', '')
+GMAIL_PASS = os.environ.get('GMAIL_PASS', '')
 # Brevo API key — required on Render FREE tier (SMTP ports 587/465 are blocked)
-# Sign up free at https://www.brevo.com → SMTP & API → API Keys
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+
+def get_mail_config():
+    """Read email config from env at send time (Render env changes need redeploy)."""
+    sender = os.environ.get('BREVO_SENDER_EMAIL', BREVO_SENDER_EMAIL).strip()
+    notify = os.environ.get('NOTIFY_EMAIL', NOTIFY_EMAIL).strip()
+    return sender, notify
 
 def send_email_via_brevo(subject, body, to_email, from_email, api_key):
     """Send email over HTTPS (works on Render free tier)."""
@@ -93,12 +101,13 @@ def send_email_via_smtp(subject, body, to_email, from_email, password):
         server.sendmail(from_email, to_email, msg.as_string())
 
 def send_order_email(subject, body):
+    sender_email, notify_email = get_mail_config()
     brevo_key = os.environ.get('BREVO_API_KEY', '').strip()
     on_render = bool(os.environ.get('RENDER'))
 
     if brevo_key:
-        logger.info('Sending email via Brevo API')
-        send_email_via_brevo(subject, body, GMAIL_USER, GMAIL_USER, brevo_key)
+        logger.info('Sending email via Brevo API from %s to %s', sender_email, notify_email)
+        send_email_via_brevo(subject, body, notify_email, sender_email, brevo_key)
         return
 
     if on_render:
@@ -106,8 +115,11 @@ def send_order_email(subject, body):
             'SMTP is blocked on Render free tier. Add BREVO_API_KEY in Render Environment.'
         )
 
-    logger.info('Sending email via Gmail SMTP (local)')
-    send_email_via_smtp(subject, body, GMAIL_USER, GMAIL_USER, GMAIL_PASS)
+    if not GMAIL_USER or not GMAIL_PASS:
+        raise RuntimeError('Set GMAIL_USER and GMAIL_PASS for local SMTP, or use BREVO_API_KEY.')
+
+    logger.info('Sending email via Gmail SMTP (local) from %s to %s', GMAIL_USER, notify_email)
+    send_email_via_smtp(subject, body, notify_email, GMAIL_USER, GMAIL_PASS)
 
 def get_db_connection():
     try:
