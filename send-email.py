@@ -11,8 +11,9 @@ import os
 import urllib.request
 import urllib.error
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging (DEBUG locally; INFO on Render to reduce noise)
+_log_level = logging.DEBUG if not os.environ.get('RENDER') else logging.INFO
+logging.basicConfig(level=_log_level)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -73,7 +74,7 @@ def send_email_via_brevo(subject, body, to_email, from_email, api_key):
         method='POST',
     )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             if resp.status not in (200, 201):
                 raise RuntimeError(f'Brevo API returned status {resp.status}')
     except urllib.error.HTTPError as e:
@@ -205,17 +206,6 @@ def send_email():
             logger.error("Missing required fields: %s", missing_fields)
             return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
 
-        # Save order to database (email still sent if DB is unavailable)
-        order_id = None
-        db_saved = False
-        try:
-            order_id = save_order_to_db(order_data)
-            db_saved = True
-            logger.info("Order saved with ID: %s", order_id)
-        except Exception as e:
-            order_id = str(uuid.uuid4())
-            logger.error("Failed to save order to database: %s", str(e))
-
         # Format the email content
         summary = "New Order Summary:\n\n"
         summary += "Product Details:\n"
@@ -251,6 +241,16 @@ def send_email():
         except Exception as e:
             email_error = str(e)
             logger.error("Failed to send email: %s", email_error)
+
+        # Save order to database after email (DB slowness won't block email)
+        order_id = str(uuid.uuid4())
+        db_saved = False
+        try:
+            order_id = save_order_to_db(order_data)
+            db_saved = True
+            logger.info("Order saved with ID: %s", order_id)
+        except Exception as e:
+            logger.error("Failed to save order to database: %s", str(e))
 
         if db_saved:
             message = 'Order saved and email sent successfully' if email_sent else 'Order saved successfully'
